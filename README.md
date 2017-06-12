@@ -1,18 +1,36 @@
-# EZUIKit-JavaScript
-Ezviz UI组件，可以快速实现视频应用
+# UIKit Javascript 使用说明
 
-## 使用说明
-1 页面引入js
+### 简介
+UIKit，是基于萤石开放平台OpenSDK封装的UI组件，使用过程中不必学习专业的业务概念，更不用调用繁琐的接口，能够以极简的嵌入方式，快速在您的应用中集成视频功能。
+
+UIKit覆盖的平台包含：[iOS](./uikit_ios.html)、[Android](./uikit_android.html)、[H5/Web](./uikit_javascript.html)、[ActiveX(IE)](./uikit_ocx.html)。
+
+
+### 浏览器支持
+
+- chrome
+- ie9+
+- 国产浏览器请使用急速模式(webkit内核)
+
+- Android 4.4+
+- Safari for iOS 9.3+
+
+
+### 使用说明
+页面引入js
 
 ```js
-<script src="https://open.ys7.com/sdk/js/1.0/ezuikit.js"></script>
+<script src="https://open.ys7.com/sdk/js/1.1/ezuikit.js"></script>
 ```
-2 创建一个video标签 [若设置autoplay属性则默认自动播放]
+页面创建一个video标签 [若设置autoplay属性则默认自动播放]
 ```html
 <video id="myPlayer" poster="[这里可以填入封面图片URL]" controls playsInline webkit-playsinline [autoplay]>
+    <source src="[这里填入从开放平台官网获取到的RTMP协议URL]" type="" />
     <source src="[这里填入从开放平台官网获取到的HLS协议URL]" type="application/x-mpegURL" />
 </video>
 ```
+**注意：若要支持手机播放必须填入HLS协议地址**
+
 初始化
 ```js
 <script>
@@ -21,7 +39,7 @@ var player = new EZUIPlayer('myPlayer');
 ```
 
 
-## 完整示例
+### 完整示例
 
 ```html
 <!DOCTYPE html>
@@ -32,38 +50,66 @@ var player = new EZUIPlayer('myPlayer');
     <meta name="renderer" content="webkit">
     <title>测试页面</title>
     <style>
-        html,body{margin:0; padding: 0;text-align: center;}
+        body{margin:0;text-align: center;}
         video{max-width: 1200px;width: 100%;}
     </style>
-    <script src="https://open.ys7.com/sdk/js/1.0/ezuikit.js"></script>
 </head>
 <script>
 </script>
 <body>
+<script src="https://open.ys7.com/sdk/js/1.1/ezuikit.js"></script>
 
 <video id="myPlayer" poster="" controls playsInline webkit-playsinline autoplay>
-    <source src="http://open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" type="application/x-mpegURL" />
+    <source src="rtmp://rtmp.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b" type="" />
+    <source src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" type="application/x-mpegURL" />
+
 </video>
 
 <script>
     var player = new EZUIPlayer('myPlayer');
+    player.on('error', function(){
+        console.log('error');
+    });
+    player.on('play', function(){
+        console.log('play');
+    });
+    player.on('pause', function(){
+        console.log('pause');
+    });
+
 </script>
 </body>
 </html>
 ```
 
-完整示例地址 [https://open.ys7.com/sdk/js/1.0/demo.html](https://open.ys7.com/sdk/js/1.0/demo.html)
+完整示例地址 [https://open.ys7.com/sdk/js/1.1/demo.html](https://open.ys7.com/sdk/js/1.1/demo.html)
 
 可使用手机扫码查看效果:
 
 ![](./js_demo.png)
 
 
-## 浏览器兼容性
-
-- chrome(MSE or flash)
-- ie9+(MSE or flash)
-- 国产浏览器请使用急速模式(webkit内核)
-
-- Android 4.4+
-- Safari for iOS 9.3+
+## 方法与事件回调
+### 播放
+```
+player.play();
+```
+### 暂停
+```
+player.pause();
+```
+### 注册事件
+```
+// 注册错误事件回调
+player.on('error', function(){
+    console.log('error');
+});
+// 注册播放事件回调
+player.on('play', function(){
+    console.log('play');
+});
+// 注册暂停事件回调
+player.on('pause', function(){
+    console.log('pause');
+});
+```

@@ -6,21 +6,34 @@
     <meta name="renderer" content="webkit">
     <title>测试页面</title>
     <style>
-        html,body{margin:0; padding: 0;text-align: center;}
+        body{margin:0;text-align: center;}
         video{max-width: 1200px;width: 100%;}
     </style>
 </head>
 <script>
 </script>
 <body>
-<script src="https://open.ys7.com/sdk/js/1.0/ezuikit.js"></script>
+<!--<script src="https://open.ys7.com/sdk/js/1.1/ezuikit.js"></script>-->
+<script src="./ezuikit.js"></script>
 
 <video id="myPlayer" poster="" controls playsInline webkit-playsinline autoplay>
-    <source src="http://open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" type="application/x-mpegURL" />
+    <source src="rtmp://rtmp.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b" type="" />
+    <source src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" type="application/x-mpegURL" />
+
 </video>
 
 <script>
     var player = new EZUIPlayer('myPlayer');
+    player.on('error', function(){
+        console.log('error');
+    });
+    player.on('play', function(){
+        console.log('play');
+    });
+    player.on('pause', function(){
+        console.log('pause');
+    });
+
 </script>
 </body>
 </html>

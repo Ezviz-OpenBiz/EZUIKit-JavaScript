@@ -1,5 +1,5 @@
 /**
- * ezui 1.0
+ * ezui 1.1
  */
 ( function( global, factory ) {
 
@@ -32,10 +32,10 @@
     var Domain = 'https://open.ys7.com';
     var logDomain = 'https://log.ys7.com/statistics.do';
 
-    var ckplayerJS = Domain + '/sdk/js/1.0/ckplayer/ckplayer.js';
-    var ckplayerSWF = Domain + '/sdk/js/1.0/ckplayer/ckplayer.swf';
-    var m3u8SWF = Domain + '/sdk/js/1.0/ckplayer/m3u8.swf';
-    var hlsJS = Domain + '/sdk/js/1.0/hls.light.min.js';
+    var ckplayerJS = Domain + '/sdk/js/1.1/ckplayer/ckplayer.js';
+    var ckplayerSWF = Domain + '/sdk/js/1.1/ckplayer/ckplayer.swf';
+    var m3u8SWF = Domain + '/sdk/js/1.1/ckplayer/m3u8.swf';
+    var hlsJS = Domain + '/sdk/js/1.1/hls.light.min.js';
 
 
     // 当前页面是否是https协议
@@ -52,32 +52,36 @@
     // 是否使用flash
     var useFlash = false;
 
+    // 本地信息上报
+    var LOCALINFO = 'open_netstream_localinfo';
+    // 预览主表上报
+    var PLAY_MAIN = 'open_netstream_play_main';
 
     var PARAMS = {
-        Ver: '1.0',
+        Ver: '1.1.0',
         PlatAddr: 'open.ys7.com',
-        ExterVer: 'Ez.1.0',
+        ExterVer: 'Ez.1.1.0',
         CltType: 102,
-        systemName: 'open_netstream_localinfo',
+        systemName: LOCALINFO,
         OS: navigator.platform
     };
 
-    var tempArray = [];
-    for(var i in PARAMS){
-        tempArray.push(i + '=' + PARAMS[i]);
+    function dclog(){
+        var tempArray = [];
+        for(var i in PARAMS){
+            tempArray.push(i + '=' + PARAMS[i]);
+        }
+        var params = '?' + tempArray.join('&');
+        // 上报一次本地统计信息
+        var img = new Image();
+        img.src = logDomain + params;
     }
-    var params = '?' + tempArray.join('&');
 
-    // 上报一次统计信息
-    var img = new Image();
-    img.src = logDomain + params;
+    // 上报一次本地信息
+    dclog();
 
-
-
-    // 日志打印
-    function log(msg){
-        window.console && console.log(msg);
-    }
+    var RTMP_REG = /^rtmp/;
+    var HLS_REG = /\.m3u8/;
 
     // 获取元素样式
     function getStyle(el){
@@ -97,7 +101,7 @@
 
     var EZUIPlayer = function(videoId){
         if(!isModernBrowser){
-            log('不支持ie8等低版本浏览器');
+            throw new Error('不支持ie8等低版本浏览器');
             return;
         }
         if(typeof videoId !== 'string'){
@@ -109,13 +113,47 @@
             throw new Error('EZUIPlayer requires parameter videoId');
         }
         this.opt = {};
-        this.opt.source = this.video.src || this.video.children[0].src;
+        this.opt.sources = [];
+        var sources = this.video.getElementsByTagName('source');
+        // 转为数组对象，不受removeChild影响
+        sources = Array.prototype.slice.call(sources, 0);
 
-        // 数据上报
-        params += '&HLSURL=' + this.opt.source;
-        var img = new Image();
-        img.src = logDomain + params;
+        if(this.video.src){
+            // 移动端删除rtmp地址
+            if(isMobile && RTMP_REG.test(this.video.src)){
+                this.video.removeAttribute('src');
+                this.video.load();
+            }else{
+                this.opt.sources.push(this.video.src);
+            }
+        }
 
+        var l = sources.length;
+        if(l > 0){
+            for(var i = 0; i < l; i++){
+                // 移动端删除rtmp地址
+                if(isMobile && RTMP_REG.test(sources[i].src)){
+                    this.video.removeChild(sources[i]);
+                }else{
+                    this.opt.sources.push(sources[i].src);
+                }
+            }
+        }
+        if(this.opt.sources.length < 1){
+            throw new Error('no source found in video tag.');
+        }
+        this.opt.cur = 0;
+
+
+
+        // // 数据上报
+        // params += '&PLAYURL=' + this.opt.source;
+        // var img = new Image();
+        // img.src = logDomain + params;
+
+
+        // 事件存储
+        this.handlers = {};
 
         this.opt.poster = this.video.poster;
         var videoStyle = getStyle(this.video);
@@ -138,85 +176,162 @@
         this.opt.autoplay = this.video.autoplay ? true : false;
         this.log('autoplay:' + this.video.autoplay);
 
+        this.tryPlay();
+        this.initTime = new Date().getTime();
+
+        this.on('play', function(){
+            // 上报播放成功信息
+            PARAMS.playurl = this.opt.currentSource;
+            PARAMS.systemName = PLAY_MAIN;
+            PARAMS.StartTime = new Date().getTime();
+            PARAMS.ErrCd = 0;
+            PARAMS.Cost = PARAMS.StartTime - this.initTime;
+            dclog();
+        });
+        this.on('error', function(){
+            // 上报播放失败信息
+            PARAMS.playurl = this.opt.currentSource;
+            PARAMS.systemName = PLAY_MAIN;
+            PARAMS.StartTime = new Date().getTime();
+            PARAMS.ErrCd = -1;
+            PARAMS.Cost = -1;
+            dclog();
+        });
+
+    };
+
+    // 事件监听
+    EZUIPlayer.prototype.on = function(eventName, callback){
+        if(typeof eventName !== 'string' || typeof callback !== 'function'){
+            return;
+        }
+        if(typeof this.handlers[eventName] === 'undefined'){
+            this.handlers[eventName] = [];
+        }
+        this.handlers[eventName].push(callback);
+    };
+
+    // 事件触发
+    EZUIPlayer.prototype.emit = function(){
+        if(this.handlers[arguments[0]] instanceof Array){
+            var handlers = this.handlers[arguments[0]];
+            var l = handlers.length;
+            for(var i = 0; i < l; i++){
+                handlers[i].apply(this, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+    };
+
+    // 尝试播放
+    EZUIPlayer.prototype.tryPlay = function(){
+        this.opt.currentSource = this.opt.sources[this.opt.cur];
+        if(!this.opt.currentSource){
+            this.log('未找到合适的播放URL');
+            return;
+        }
         var me = this;
-        // 如果是手机浏览器环境,或者原生支持HLS播放的,直接使用video标签播放
-        // 否则尝试使用hls.js播放，
-        // 最后使用flash
-        if(isMobile || isNativeSupportHls){
-            this.log('使用原生video');
-            this.video.style.heght = Number(this.opt.width.replace(/[^\d]/g, '')) * 9 / 16 + 'px';
-        }else{
-            if(isHttps){
+        // 如果是HLS地址
+        if(/\.m3u8/.test(this.opt.currentSource)){
+            // 如果是手机浏览器环境,或者原生支持HLS播放的,直接使用video标签播放
+            // 否则尝试使用hls.js播放，
+            // 最后使用flash
+            if(isMobile || isNativeSupportHls){
+                this.log('使用原生video');
+                this.video.style.heght = Number(this.opt.width.replace(/[^\d]/g, '')) * 9 / 16 + 'px';
+                this.initVideoEvent();
+            }else{
+                if(isHttps){
+                    addJs(ckplayerJS, function(){
+                        me.initCKPlayer();
+                    });
+                }else{
+                    addJs(hlsJS, function(){
+                        isSupportHls = Hls.isSupported();
+                        if(isSupportHls){
+                            me.log('使用hls.js');
+                            me.initHLS();
+                        }else{
+                            useFlash = true;
+                            me.log('2 使用flash');
+                            addJs(ckplayerJS, function(){
+                                me.initCKPlayer();
+                            });
+                        }
+                    });
+                }
+            }
+        }else if(/^rtmp:/.test(this.opt.currentSource)){
+            if(isMobile){
+                this.opt.cur++;
+                this.tryPlay();
+                return;
+            }else{
                 addJs(ckplayerJS, function(){
                     me.initCKPlayer();
                 });
-            }else{
-                addJs(hlsJS, function(){
-                    isSupportHls = Hls.isSupported();
-                    if(isSupportHls){
-                        log('使用hls.js');
-                        me.initHLS();
-                    }else{
-                        useFlash = true;
-                        log('2 使用flash');
-                        addJs(ckplayerJS, function(){
-                            me.initCKPlayer();
-                        });
-                    }
-                });
             }
         }
-
-        //this.log('isModernBrowser:' + isModernBrowser + ' isNativeSupportHls:' + isNativeSupportHls + ' isSupportHls:' + isSupportHls + ' isMobile:' + isMobile);
-
     };
 
     // 初始化hls.js
     EZUIPlayer.prototype.initHLS = function(){
         var me = this;
-        if(!this.opt.source){
-            throw new Error('no source found in video');
-        }
         var hls = new Hls();
-        hls.loadSource(this.opt.source);
+        hls.loadSource(this.opt.currentSource);
         hls.attachMedia(this.video);
         hls.on(Hls.Events.MANIFEST_PARSED, function(){
             if(me.opt.autoplay){
                 me.video.play();
             }
-        })
+            me.initVideoEvent();
+        });
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            me.emit('error', event, data);
+        });
+        this.hls = hls;
     };
 
     // 日志
     EZUIPlayer.prototype.log = function(msg){
-        window.console && console.log(msg);
+        this.emit('log', msg);
     };
 
     // 初始化ckplayer
     EZUIPlayer.prototype.initCKPlayer = function(){
-        log('ckplayer初始化');
+        this.log('ckplayer初始化');
+        var me = this;
+        var events = {
+            'play': function(){me.emit('play')},
+            'pause': function(){me.emit('pause')},
+            'error': function(){me.emit('error')}
+        };
+        window.ckplayer_status = function(){
+            me.log(arguments);
+            events[arguments[0]] && events[arguments[0]]();
+        };
+
         // 新增相同id的div标签，然后删除video标签
         this.videoFlash = document.createElement('DIV');
         this.video.parentNode.replaceChild(this.videoFlash, this.video);
+        this.video = this.videoFlash;
         this.videoFlash.id = this.opt.parentId;
-        this.log(this.videoFlash.id);
         var flashvars = null;
         // 如果rtmp服务器环境设置了视频暂停则断开链接
         // 需要修改ckplayer.js  setup参数第30个值
         // 在播放暂停后点击播放是否采用重新链接的方式
-        if(/^rtmp/.test(this.opt.source)){
+        if(/^rtmp/.test(this.opt.currentSource)){
             flashvars = {
-                f: this.opt.source,
+                f: this.opt.currentSource,
                 c: 0,
                 p: this.opt.autoplay ? 1 : 0,
                 lv: 1,
                 loaded: 'loadHandler'
             };
-        }else if(/\.m3u8/.test(this.opt.source)){
+        }else if(/\.m3u8/.test(this.opt.currentSource)){
             flashvars = {
                 s:4,  // 4-使用swf视频流插件播放
                 f:m3u8SWF,
-                a: this.opt.source,
+                a: this.opt.currentSource,
                 c: 0,  // 0-使用ckplayer.js的配置 1-使用ckplayer.xml的配置
                 lv:1, // 1-直播 0-普通方式
                 p: this.opt.autoplay ? 1 : 0,   // 1-默认播放 0-默认暂停
@@ -225,7 +340,7 @@
             };
         }else{
             flashvars = {
-                f: this.opt.source,
+                f: this.opt.currentSource,
                 c: 0,
                 p: 1,
                 loaded: 'loadHandler'
@@ -235,6 +350,144 @@
         this.flashId = this.opt.parentId + 'flashId';
         CKobject.embedSWF(ckplayerSWF,this.opt.parentId,this.flashId,this.opt.width,this.opt.height,flashvars,params);
     };
+
+    EZUIPlayer.prototype.initVideoEvent = function(){
+        var me = this;
+        var EVENT = {
+            'loadstart': function(e){
+                me.log('loadstart...当浏览器开始查找音频/视频时...');
+                me.emit('loadstart', e);
+            },
+            'durationchange': function(e){
+                me.log('durationchange...当音频/视频的时长已更改时...');
+                me.emit('durationchange', e);
+            },
+            'loadedmetadata': function(e){
+                me.log('loadedmetadata...当浏览器已加载音频/视频的元数据时...');
+                me.emit('loadedmetadata', e);
+            },
+            'loadeddata': function(e){
+                me.log('loadeddata...当浏览器已加载音频/视频的当前帧时...');
+                me.emit('loadeddata', e);
+            },
+            'progress': function(e){
+                me.log('progress...当浏览器正在下载音频/视频时...');
+                me.emit('progress', e);
+            },
+            'canplay': function(e){
+                me.log('canplay...当浏览器可以播放音频/视频时...');
+                me.emit('canplay', e);
+            },
+            'canplaythrough': function(e){
+                me.log('canplaythrough...当浏览器可在不因缓冲而停顿的情况下进行播放时...');
+                me.emit('canplaythrough', e);
+            },
+            'abort': function(e){
+                me.log('abort...当音频/视频的加载已放弃时...');
+                me.emit('abort', e);
+            },
+            'emptied': function(e){
+                me.log('emptied...当目前的播放列表为空时...');
+                me.emit('emptied', e);
+            },
+            'ended': function(e){
+                me.log('ended...当目前的播放列表已结束时...');
+                me.emit('ended', e);
+            },
+            'pause': function(e){
+                me.log('pause...当音频/视频已暂停时...');
+                me.emit('pause', e);
+            },
+            'play': function(e){
+                me.log('play...当音频/视频已开始或不再暂停时...');
+                me.emit('play', e);
+            },
+            'playing': function(e){
+                me.log('playing...当音频/视频在已因缓冲而暂停或停止后已就绪时...');
+                me.emit('playing', e);
+            },
+            'ratechange': function(e){
+                me.log('ratechange...当音频/视频的播放速度已更改时...');
+                me.emit('ratechange', e);
+            },
+            'seeked': function(e){
+                me.log('seeked...当用户已移动/跳跃到音频/视频中的新位置时...');
+                me.emit('seeked', e);
+            },
+            'seeking': function(e){
+                me.log('seeking...当用户开始移动/跳跃到音频/视频中的新位置时...');
+                me.emit('seeking', e);
+            },
+            'stalled': function(e){
+                me.log('stalled...当浏览器尝试获取媒体数据，但数据不可用时...');
+                me.emit('stalled', e);
+            },
+            'suspend': function(e){
+                me.log('suspend...当浏览器刻意不获取媒体数据时...');
+                me.emit('suspend', e);
+                if(me.opt.autoplay){
+                    me.video.play();
+                }
+            },
+            'timeupdate': function(e){
+                //me.log('timeupdate...当目前的播放位置已更改时...');
+                me.emit('timeupdate', e);
+            },
+            'volumechange': function(e){
+                me.log('volumechange...当音量已更改时...');
+                me.emit('volumechange', e);
+            },
+            'waiting': function(e){
+                me.log('waiting...当视频由于需要缓冲下一帧而停止...');
+                me.emit('waiting', e);
+            },
+            'error': function(e){
+                me.log('error...当在音频/视频加载期间发生错误时...');
+                me.emit('error', e);
+            }
+
+        };
+        for(var i in EVENT){
+            this.video.addEventListener( i, EVENT[i], false);
+        }
+
+    };
+
+    EZUIPlayer.prototype.play = function(){
+        this.opt.autoplay = true;
+        if(!!window['CKobject']){
+            CKobject.getObjectById(this.flashId).videoPlay();
+        }else if(!!this.video){
+            this.video.play();
+        }
+
+    };
+
+    EZUIPlayer.prototype.pause = function(){
+        this.opt.autoplay = false;
+        if(!!window['CKobject']){
+            CKobject.getObjectById(this.flashId).videoPause();
+        }else if(!!this.video){
+            this.video.pause();
+        }
+    };
+
+    // EZUIPlayer.prototype.load = function(){
+    //
+    // };
+    //
+    // EZUIPlayer.prototype.remove = function(){
+    //
+    // };
+    //
+    // EZUIPlayer.prototype.clear = function(){
+    //
+    // };
+    //
+    // // 修改播放地址
+    // EZUIPlayer.prototype.changeSource = function(source){
+    //
+    // };
 
 
     if ( !noGlobal ) {
