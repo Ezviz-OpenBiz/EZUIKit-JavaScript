@@ -3,7 +3,7 @@
 ### 简介
 UIKit，是基于萤石开放平台OpenSDK封装的UI组件，使用过程中不必学习专业的业务概念，更不用调用繁琐的接口，能够以极简的嵌入方式，快速在您的应用中集成视频功能。
 
-UIKit覆盖的平台包含：[iOS](./uikit_ios.html)、[Android](./uikit_android.html)、[H5/Web](./uikit_javascript.html)、[ActiveX(IE)](./uikit_ocx.html)。
+萤石开放平台官网 https://open.ys7.com
 
 
 ### 浏览器支持
