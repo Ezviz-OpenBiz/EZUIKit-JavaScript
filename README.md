@@ -94,6 +94,10 @@ var player = new EZUIPlayer('myPlayer');
 ```
 player.play();
 ```
+### 停止
+```
+player.pause();
+```
 ### 暂停
 ```
 player.pause();
