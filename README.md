@@ -96,7 +96,7 @@ player.play();
 ```
 ### 停止
 ```
-player.();
+player.stop();
 ```
 ### 暂停
 ```
