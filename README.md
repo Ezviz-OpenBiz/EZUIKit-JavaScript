@@ -1,4 +1,4 @@
-# UIKit Javascript 使用说明
+# UIKit Javascript 使用说明  
 
 ### 简介
 UIKit，是基于萤石开放平台OpenSDK封装的UI组件，使用过程中不必学习专业的业务概念，更不用调用繁琐的接口，能够以极简的嵌入方式，快速在您的应用中集成视频功能。
