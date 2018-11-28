@@ -20,7 +20,7 @@ UIKit，是基于萤石开放平台OpenSDK封装的UI组件，使用过程中不
 页面引入js
 
 ```js
-<script src="https://open.ys7.com/sdk/js/1.1/ezuikit.js"></script>
+<script src="https://{{path}}/ezuikit.js"></script>
 ```
 页面创建一个video标签 [若设置autoplay属性则默认自动播放]
 ```html
@@ -57,7 +57,7 @@ var player = new EZUIPlayer('myPlayer');
 <script>
 </script>
 <body>
-<script src="https://open.ys7.com/sdk/js/1.1/ezuikit.js"></script>
+<script src="https://open.ys7.com/sdk/js/1.4/ezuikit.js"></script>
 
 <video id="myPlayer" poster="" controls playsInline webkit-playsinline autoplay>
     <source src="rtmp://rtmp.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b" type="" />
@@ -82,7 +82,7 @@ var player = new EZUIPlayer('myPlayer');
 </html>
 ```
 
-完整示例地址 [https://open.ys7.com/sdk/js/1.1/demo.html](https://open.ys7.com/sdk/js/1.1/demo.html)
+完整示例地址 [https://open.ys7.com/sdk/js/1.4/demo.html](https://open.ys7.com/sdk/js/1.4/demo.html)
 
 可使用手机扫码查看效果:
 
