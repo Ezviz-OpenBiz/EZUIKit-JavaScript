@@ -17,14 +17,12 @@
 <script src="./ezuikit.js"></script>
 
 <video id="myPlayer" poster="" controls playsInline webkit-playsinline autoplay>
-    <source src="rtmp://rtmp.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.hd" type="rtmp/flv" />
-    <source src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.hd.m3u8" type="application/x-mpegURL" />
+    <source src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" type="application/x-mpegURL" />
 
 </video>
 
 <script>
     var player = new EZUIPlayer('myPlayer');
-
    // 日志
    player.on('log', log);
 
@@ -33,7 +31,6 @@
        div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
        document.body.appendChild(div);
    }
-
 
 </script>
 </body>

@@ -116,4 +116,8 @@ player.on('play', function(){
 player.on('pause', function(){
     console.log('pause');
 });
+// 注册停止事件回调
+player.on('stop', function(){
+    console.log('stop');
+});
 ```
