@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" >
+    <meta name="renderer" content="webkit">
+    <title>H5对讲功能</title>
+    <style>
+        body{margin:0;}
+
+        button{
+            width: 100%;
+            height: 100px;
+            margin-top: 30px;
+            font-size: 30px;
+            font-weight: bolder;
+        }
+        #audio-container { padding: 20px 0; visibility: hidden; }
+    </style>
+</head>
+<script>
+</script>
+<body>
+<script src="../ezuikit.js"></script>
+
+<div id="audio-container">
+    <audio id="myTalker" controls></audio>
+</div>
+
+<button id="start">开始对讲</button>
+<button id="stop">结束对讲</button>
+<div id="log"></div>
+<script>
+
+
+
+    var start = document.querySelector('#start');
+    var stop = document.querySelector('#stop');
+
+    var talker = new EZuikit.EZUITalk({
+      id: 'myTalker',
+      token: 'at.8navsxplc1jl2k0nahxhomhadbqf3srv-4ciejh2mub-1p620xw-51u9f9r2b',
+      uuid: 'abf8af3d95f24e1c99044c236b9069af'
+    });
+    start.addEventListener('click',function(){
+      talker.start();
+    });
+    stop.addEventListener('click',function(){
+      talker.stop();
+    });
+
+    // 日志
+    talker.on('log', log);
+     function log(str){
+       var div = document.createElement('DIV');
+       div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
+       document.body.appendChild(div);
+   }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" >
+    <meta name="renderer" content="webkit">
+    <title>HLS播放协议</title>
+    <style>
+        body{margin:0;}
+        #myPlayer{max-width: 600px;width: 600px;}
+    </style>
+</head>
+<script>
+</script>
+<body>
+<script src="../ezuikit.js"></script>
+<script src="../js/jquery.min.js"></script>
+<button id="start">开始播放</button>
+<button id="pause">暂停播放</button>
+<button id="stop">停止播放</button>
+<video
+  id="myPlayer"
+  poster=""
+  controls
+  playsInline
+  webkit-playsinline
+>
+    <source src="http://hls.open.ys7.com/openlive/0209eadc8aa84aec88b441519b021d7f.m3u8" type="application/x-mpegURL" />
+</video>
+
+<script>
+    var player = new EZuikit.EZUIPlayer('myPlayer');
+   // 日志
+   player.on('log', log);
+
+   function log(str){
+       var div = document.createElement('DIV');
+       div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
+       document.body.appendChild(div);
+   }
+   $("#start").click(function(){
+       console.log("开始播放");
+       player.play();
+   });
+   $("#pause").click(function(){
+       console.log("暂停播放");
+       player.pause();
+   });
+   $("#stop").click(function(){
+       console.log("结束播放",player);
+       player.stop();
+   });
+
+</script>
+</body>
+</html>

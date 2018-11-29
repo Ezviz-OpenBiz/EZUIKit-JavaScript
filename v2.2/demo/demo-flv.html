@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" >
+  <meta name="renderer" content="webkit">
+  <title>flv播放协议</title>
+  <style>
+    body{margin:0;}
+    #myPlayer{max-width: 1200px;width: 100%;}
+  </style>
+    <style>
+        body {
+          margin: 0;
+        }
+    
+        #url,#accessToken {
+          width: 100%;
+        }
+    
+        .btn-container {
+          margin: 10px;
+        }
+      </style>
+</head>
+<script>
+</script>
+<body>
+<script src="../ezuikit.js"></script>
+<script src="../js/jquery.min.js"></script>
+<textarea id="url" placeholder="这里输入直播地址">https://flvopen.ys7.com:9188/openlive/f01018a141094b7fa138b9d0b856507b.hd.flv</textarea>
+<div class="btn-container">
+    <button id="init">开始初始化</button>
+    <button id="start">播放</button>
+    <button id="pause">暂停</button>
+    <!-- <button id="resume">恢复</button> -->
+    <button id="stop">停止</button>
+  </div>
+<video
+  id="myPlayer"
+  src="https://flvopen.ys7.com:9188/openlive/f01018a141094b7fa138b9d0b856507b.hd.flv"
+  controls
+  playsInline
+  webkit-playsinline
+  autoplay>
+</video>
+
+<script>
+  // var player = new EZuikit.EZUIPlayer('myPlayer');
+  $("#init").click(function () {
+      var url = $('#url').val().trim();
+     // var player = new EZuikit.EZUIPlayer('myPlayer');
+      var player = new EZuikit.EZUIPlayer({
+        id: 'myPlayer',
+      });
+      $("#start").click(function () {
+        
+        player.play();
+      })
+      $("#pause").click(function () {
+        player.pause();
+      })
+      $("#stop").click(function () {
+        player.stop();
+      })
+
+    })
+  // // 日志
+  // player.on('log', log);
+
+  // function log(str){
+  //   var div = document.createElement('DIV');
+  //   div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
+  //   document.body.appendChild(div);
+  // }
+
+</script>
+</body>
+</html>
