@@ -1,0 +1,96 @@
+<html><head>
+  <meta charset="utf-8">
+  <title>ckplayer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <style>
+#input{
+	width: 100%;
+	height: 80px;
+}
+#playBtn{
+  width: 100%;
+  height: 40px;
+}
+  </style>
+</head>
+<body>
+  <textarea id="input">http://hls.open.ys7.com/openlive/0209eadc8aa84aec88b441519b021d7f.m3u8</textarea>
+  <button id="playBtn">播放</button>
+  <button id="start">开始播放</button>
+<button id="pause">暂停播放</button>
+<button id="stop">停止播放</button>
+  <div id="a1"><object pluginspage="http://www.macromedia.com/go/getflashplayer" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=11,3,0,0" width="800" height="450" id="ckplayer_a1" name="ckplayer_a1" align="middle"><param name="allowScriptAccess" value="always"><param name="allowFullScreen" value="true"><param name="quality" value="high"><param name="bgcolor" value="#FFF"><param name="wmode" value="transparent"><param name="movie" value="../js/ckplayer/ckplayer.swf"><param name="flashvars" value="s=4&amp;f=http://10.82.3.136/jizaiyi/tools/ckplayer/m3u8.swf&amp;a=http://hls.open.ys7.com/openlive/0209eadc8aa84aec88b441519b021d7f.m3u8&amp;c=1&amp;lv=1&amp;p=1"><embed allowscriptaccess="always" allowfullscreen="true" quality="high" bgcolor="#FFF" wmode="transparent" src="../js/ckplayer/ckplayer.swf" flashvars="s=4&amp;f=http://10.82.3.136/jizaiyi/tools/ckplayer/m3u8.swf&amp;a=http://hls.open.ys7.com/openlive/0209eadc8aa84aec88b441519b021d7f.m3u8&amp;c=1&amp;lv=1&amp;p=1" width="800" height="450" name="ckplayer_a1" id="ckplayer_a1" align="middle" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></object></div>
+<script type="text/javascript" src="../js/ckplayer/ckplayer.js" charset="utf-8"></script>
+<script type="text/javascript">
+var playBtn = document.getElementById('playBtn');
+var inputTxt = document.getElementById('input');
+
+inputTxt.addEventListener('click', function(){
+  this.select();
+});
+inputTxt.addEventListener('keypress', function(e){
+  if(e.keyCode == 13){
+    play();
+  }
+}, false);
+
+playBtn.addEventListener('click', play, false);
+
+function play(){
+  var playUrl = inputTxt.value;
+  var flashvars = null;
+  // 如果rtmp服务器环境设置了视频暂停则断开链接
+  // 需要修改ckplayer.js  setup参数第30个值 在播放暂停后点击播放是否采用重新链接的方式
+  if(/^rtmp/.test(playUrl)){
+    flashvars = {
+      f: playUrl,
+      c: 1
+    };
+  }else if(/\.m3u8/.test(playUrl)){
+    flashvars = {
+      s:4,  // 4-使用swf视频流插件播放
+  		f:'m3u8.swf',
+  		a:playUrl,
+  		c: 1,  // 1-使用ckplayer.js的配置 0-使用ckplayer.xml的配置
+      lv:1, // 1-直播 0-普通方式
+      p:1   // 1-默认播放 0-默认暂停
+    };
+  }else{
+    flashvars = {
+      f: playUrl,
+      c: 0
+    };
+  }
+  var params={bgcolor:'#FFF',allowFullScreen:true,allowScriptAccess:'always',wmode:'transparent'};
+  CKobject.embedSWF('../js/ckplayer/ckplayer.swf','a1','ckplayer_a1','800','450',flashvars,params);
+}
+
+
+</script>
+<script>
+  var stopBtn = document.getElementById('stop');
+  stopBtn.addEventListener('click', function(){
+  console.log("点击了关闭",CKobject);
+  CKobject.videoPause();
+});
+  //  $("#start").click(function(){
+  //      console.log("开始播放");
+  //      player.play();
+  //  });
+  //  $("#pause").click(function(){
+  //      console.log("暂停播放");
+  //      player.pause();
+  //  });
+  //  $("#stop").click(function(){
+  //      console.log("结束播放",player);
+  //      player.stop();
+  //  });
+</script>
+
+<audio controls="controls" style="display: none;"></audio>
+</body>
+<style type="text/css">#yddContainer{display:block;font-family:Microsoft YaHei;position:relative;width:100%;height:100%;top:-4px;left:-4px;font-size:12px;border:1px solid}#yddTop{display:block;height:22px}#yddTopBorderlr{display:block;position:static;height:17px;padding:2px 28px;line-height:17px;font-size:12px;color:#5079bb;font-weight:bold;border-style:none solid;border-width:1px}#yddTopBorderlr .ydd-sp{position:absolute;top:2px;height:0;overflow:hidden}.ydd-icon{left:5px;width:17px;padding:0px 0px 0px 0px;padding-top:17px;background-position:-16px -44px}.ydd-close{right:5px;width:16px;padding-top:16px;background-position:left -44px}#yddKeyTitle{float:left;text-decoration:none}#yddMiddle{display:block;margin-bottom:10px}.ydd-tabs{display:block;margin:5px 0;padding:0 5px;height:18px;border-bottom:1px solid}.ydd-tab{display:block;float:left;height:18px;margin:0 5px -1px 0;padding:0 4px;line-height:18px;border:1px solid;border-bottom:none}.ydd-trans-container{display:block;line-height:160%}.ydd-trans-container a{text-decoration:none;}#yddBottom{position:absolute;bottom:0;left:0;width:100%;height:22px;line-height:22px;overflow:hidden;background-position:left -22px}.ydd-padding010{padding:0 10px}#yddWrapper{color:#252525;z-index:10001;background:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ab20.png);}#yddContainer{background:#fff;border-color:#4b7598}#yddTopBorderlr{border-color:#f0f8fc}#yddWrapper .ydd-sp{background-image:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ydd-sprite.png)}#yddWrapper a,#yddWrapper a:hover,#yddWrapper a:visited{color:#50799b}#yddWrapper .ydd-tabs{color:#959595}.ydd-tabs,.ydd-tab{background:#fff;border-color:#d5e7f3}#yddBottom{color:#363636}#yddWrapper{min-width:250px;max-width:400px;}
+</style>
+</html>

@@ -32,8 +32,8 @@
   <h2>预览，回放</h2>
   <!-- <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.hd.live</textarea>
   <textarea id="accessToken" placeholder="这里输入accessToken">at.bzmibt1w95bmcf4w608ks9tqbq2o66tm-26j3obkb12-0d07fza-p9jqh8gyz</textarea> -->
-  <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/01abc8dd0d94442a8ea5258e9300b712.rec</textarea>
-  <textarea id="accessToken" placeholder="这里输入accessToken">du.0lcm43gw97hfk0yw7lh31vw89kahvbm2-7zo22ycqlb-0y90wyt-gcwyaany1</textarea>
+  <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/1aa235991cd14f028e97a407ec1bd21f.live</textarea>
+  <textarea id="accessToken" placeholder="这里输入accessToken">at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc</textarea>
   <div class="btn-container">
     <button id="init">开始初始化</button>
     <button id="start">播放</button>
@@ -54,8 +54,7 @@
   </div>
 
   <video id="myPlayer" src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" controls
-    playsInline   width="300"
-    height="200" webkit-playsinline>
+    playsInline webkit-playsinline>
   </video>
 
   <script>
@@ -63,16 +62,16 @@
     $("#init").click(function () {
       var url = $('#url').val().trim();
       var accessToken = $('#accessToken').val().trim();
-      var decoder = new EZUIPlayer({
+      var decoder = new EZUIKit.EZUIPlayer({
         id: 'playWind',
         autoplay: true,
         url: url,
         accessToken: accessToken,
         decoderPath: '../',
-        width: 600,
-        height: 400,
+        width: 300,
+        height: 200,
         env: {
-          domain: 'https://test2open.ys7.com:65',
+          domain: 'https://test.ys7.com:65',
           //domain: 'http://y.ys7.com:3100',
         }
       });

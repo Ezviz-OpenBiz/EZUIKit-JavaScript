@@ -396,22 +396,20 @@
             }
             request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
           } else {
-            throw new Error('获取播放设备信息失败');
+            //throw new Error('获取播放设备信息失败');
           }
           // _this.opt.currentSource = realUrl;
           /**参数容错处理  end*/
         }
         var apiError = function (error) {
           console.log("getdecoder url from api error", error);
-          throw new Error('获取播放设备信息失败');
+          //throw new Error('获取播放设备信息失败');
         }
-        var isHttp = false;
-        if (playParams && playParams.env && playParams.env.domain) {
-          if (playParams.env.domain) {
-            isHttp = playParams.env.domain.indexOf('https') > 0 ? 'false' : 'true';
-          } else {
-            isHttp = window.location.indexOf('https') > 0 ? 'false' : 'true';
-          }
+        var isHttp = 'false';
+        if(playParams && playParams.env && playParams.env.domain){
+          isHttp = playParams.env.domain.indexOf('https') !== -1 ? 'false' : 'true';
+        }else {
+          isHttp = window.location.href.indexOf('https') !== -1 ? 'false' : 'true';
         }
         var apiParams = {
           ezopen: this.opt.currentSource,
@@ -485,7 +483,7 @@
             that.log('入参(isHttp)是：   ' + para.isHttp);
             that.log('---------------------------------------');
 
-            var apiUrl = 'https://open.ys7.com' + "/api/lapp/live/url/ezopen";
+            var apiUrl = apiDomain + "/api/lapp/live/url/ezopen";
             var apiSuccess = function (data) {
               if (data.code == 200) {
                 that.log('播放地址是：   ' + data.data);
@@ -790,6 +788,7 @@
   };
 
   EZUIPlayer.prototype.initJSmpeg = function (jsmpegUrl) {
+    console.log("开始初始化jsmpeg",this);
     this.canvasEle = document.createElement('canvas');
     this.canvasEle.style.width = this.opt.width;
     this.canvasEle.style.height = this.opt.height;
@@ -858,27 +857,6 @@
     // if(playParams.autoplay) {
     //   console.log("初始化发现需要自动播放");
     // }
-    if (playParams.autoplay) {
-      // 自动播放
-      _this.jSPlugin.JS_Play(_this.opt.currentSource, {
-      }, 0).then(function () {
-        _this.log('JSDecoder播放成功' + _this.opt.currentSource);
-        dclog({
-          systemName: JSSDK_ACTION,
-          scope: 'Play',
-          action: 'PlaySuccess',
-        });
-      }, function () {
-        console.log("realplay failed");
-        _this.log('JSDecoder播放失败' + _this.opt.currentSource);
-        dclog({
-          systemName: JSSDK_ACTION,
-          scope: 'Play',
-          action: 'PlayFailed',
-        });
-      });
-    }
-    // 自动播放
   }
 
   EZUIPlayer.prototype.play = function () {
@@ -975,6 +953,11 @@
       });
       // 额外销毁worker
       this.jSPlugin.JS_DestroyWorker();
+      var DOM = document.getElementById(this.opt.id);
+      var childs = DOM.childNodes; 
+      for(var i = childs.length - 1; i >= 0; i--) {
+        DOM.removeChild(childs[i]);
+      }
     }
   };
 
