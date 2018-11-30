@@ -78,7 +78,7 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
 ## <a name="back">四、预览，回放</a>
   1.页面创建div标签
   ```
-    <div id="playWind"></div>
+    <div id="myPlayer"></div>
 
   ```
   2.初始化
