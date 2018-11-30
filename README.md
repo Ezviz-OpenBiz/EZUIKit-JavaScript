@@ -88,8 +88,9 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
         url: url,
         accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc",
         decoderPath: '{{location path}}',
-        width: 300,
-        height: 200,
+        width: 600,
+        autoplay: true,
+        height: 400,
       });
   ```
 
