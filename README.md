@@ -86,10 +86,10 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
    var player = new EZUIPlayer({
         id: 'myPlayer',
         url: url,
+        autoplay: true,
         accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc",
         decoderPath: '{{location path}}',
         width: 600,
-        autoplay: true,
         height: 400,
       });
   ```
