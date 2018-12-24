@@ -30,35 +30,16 @@
   <!-- <script src="../js/jsPlugin-1.2.0.js"></script> -->
   <script src="../js/jquery.min.js"></script>
   <h2>预览，回放</h2>
-  <!-- <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.hd.live</textarea>
-  <textarea id="accessToken" placeholder="这里输入accessToken">at.bzmibt1w95bmcf4w608ks9tqbq2o66tm-26j3obkb12-0d07fza-p9jqh8gyz</textarea> -->
-  <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/1aa235991cd14f028e97a407ec1bd21f.live</textarea>
-  <textarea id="accessToken" placeholder="这里输入accessToken">at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc</textarea>
+  <textarea id="url" placeholder="这里输入ezopen地址"></textarea>
+  <textarea id="accessToken" placeholder="这里输入accessToken"></textarea>
   <div class="btn-container">
     <button id="init">开始初始化</button>
     <button id="start">播放</button>
-    <!-- <button id="pause">暂停</button> -->
-    <!-- <button id="resume">恢复</button> -->
     <button id="stop">停止</button>
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
   </div>
-  <h2>ezopen直播</h2>
-  <textarea id="url2" placeholder="这里输入直播地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live</textarea>
-  <div class="btn-container">
-    <button id="init2">开始初始化</button>
-    <button id="start2">播放</button>
-    <!-- <button id="pause">暂停</button> -->
-    <!-- <button id="resume">恢复</button> -->
-    <button id="stop2">停止</button>
-  </div>
-
-  <video id="myPlayer" src="http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8" controls
-    playsInline webkit-playsinline>
-  </video>
-
   <script>
-    // ezopen://y.ys7.com:3100/598370938/1.hd.live.ezviz?ssn=at.447ynwc59uj0uwbq2vx7gmot3j8gch0k-3gm0axemgm-16uuarf-di5itv4sm
     $("#init").click(function () {
       var url = $('#url').val().trim();
       var accessToken = $('#accessToken').val().trim();
@@ -68,22 +49,16 @@
         url: url,
         accessToken: accessToken,
         decoderPath: '../',
-        width: 300,
-        height: 200,
-        env: {
-          domain: 'https://test.ys7.com:65',
-          //domain: 'http://y.ys7.com:3100',
-        }
+        width: 600,
+        height: 400,
       });
-      // 日志
+      // 这里是打印日志，本例抛出到播放页面
       decoder.on('log', log);
-
       function log(str) {
         var div = document.createElement('DIV');
         div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
         document.body.appendChild(div);
       }
-      //  decoder.play();
       $("#start").click(function () {
         decoder.play();
       })
@@ -95,26 +70,6 @@
       })
 
     })
-    $('#init2').click(function () {
-      var url = $('#url2').val().trim();
-      $('#myPlayer2').attr("src", url);
-      var player = new EZUIKit.EZUIPlayer('myPlayer');
-      // 日志
-      player.on('log', log);
-
-      function log(str) {
-        var div = document.createElement('DIV');
-        div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
-        document.body.appendChild(div);
-      }
-      //  decoder.play();
-      $("#start2").click(function () {
-        player.play();
-      })
-      $("#stop2").click(function () {
-        player.stop();
-      })
-    });
   </script>
 </body>
 
