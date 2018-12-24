@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <title>EZOPEN播放协议</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #url {
+      width: 100%;
+    }
+
+    .btn-container {
+      margin: 10px;
+    }
+
+    #myPlayer {
+      max-width: 600px;
+      width: 100%;
+    }
+  </style>
+  <script src="../ezuikit.js"></script>
+  <script src="../js/jquery.min.js"></script>
+</head>
+
+<body>
+    <!-- ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b[.hd].live.[rtmp|hls|ws|flv|m3u8] http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.hd.m3u8-->
+  <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.hd.live</textarea>
+  <div class="btn-container">
+    <button id="init">开始初始化</button>
+    <button id="start">播放</button>
+    <button id="stop">停止</button>
+  </div>
+
+  <video 
+    id="myPlayer"
+    src=""
+    controls
+    playsInline 
+    webkit-playsinline
+  >
+  </video>
+
+  <script>
+    $('#init').click(function () {
+      var url = $('#url').val().trim();
+      $('#myPlayer').attr("src", url);
+      console.log("url", url);
+      console.log("video", $('myPlayer'))
+
+      var player = new EZUIKit.EZUIPlayer('myPlayer');
+      // 日志
+      player.on('log', log);
+
+      function log(str) {
+        var div = document.createElement('DIV');
+        div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
+        document.body.appendChild(div);
+      }
+      //  decoder.play();
+      $("#start").click(function () {
+        player.play();
+      })
+      $("#pause").click(function () {
+        player.pause();
+      })
+      $("#stop").click(function () {
+        player.stop();
+      })
+    });
+  </script>
+</body>
+
+</html>
