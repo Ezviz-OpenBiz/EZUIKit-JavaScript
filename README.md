@@ -126,7 +126,9 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   >*示例：ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.hd.live*
    
   【回放】 ezopen://open.ys7.com/[uuid].rec?begin=yyyyMMddhhssmmZ&end=yyyyMMddhhssmm
-  >*示例：ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.rec?begin=20180808000000&begin=20180808235959*
+  >*示例：ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.rec?begin=20180808000000&end=20180808235959*
+
+  >*简写模式：ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.rec?begin=20180808&end=20180808*
 
   > *将播放2018年8月8日0点0分0秒至2018年8月8日23点59分59秒回放*
 
