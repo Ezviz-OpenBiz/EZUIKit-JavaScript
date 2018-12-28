@@ -816,7 +816,6 @@
   };
 
   EZUIPlayer.prototype.initJSmpeg = function (jsmpegUrl) {
-    console.log("开始初始化jsmpeg",this);
     this.canvasEle = document.createElement('canvas');
     this.canvasEle.style.width = this.opt.width;
     this.canvasEle.style.height = this.opt.height;
