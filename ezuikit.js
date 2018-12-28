@@ -381,13 +381,18 @@
             realUrl += data.data;
             /**参数容错处理  start*/
             if (data.data.indexOf('playback') !== -1) { //回放
+              // 兼容各种时间格式
               if (!getQueryString('begin', data.data)) {
                 var defaultDate = new Date();
                 realUrl = realUrl + '&begin=' + defaultDate.getFullYear() + (defaultDate.getMonth() + 1) + defaultDate.getDate() + 'T000000Z';
+              } else {
+                realUrl = realUrl + '&begin=' + formatRecTime(getQueryString('begin', data.data));
               }
               if (!getQueryString('end', data.data)) {
                 var defaultDate = new Date();
                 realUrl = realUrl + '&end=' + defaultDate.getFullYear() +  (defaultDate.getMonth() + 1)+ defaultDate.getDate() + 'T235959Z';
+              } else {
+                realUrl = realUrl + '&end=' + formatRecTime(getQueryString('end', data.data));
               }
               // api错误处理
               if (!getQueryString('stream', data.data)) {
@@ -503,6 +508,29 @@
             request(apiUrl, 'POST', para, '', apiSuccess, apiError);
           });
         } /* 获取播放地址 - 结束 */
+      }
+    }
+    // 格式化回放时间
+    function formatRecTime(time, defaultTime){
+      // 用户格式 无需更改 => 20182626T000000Z
+      // return time
+      // 用户格式需要更改
+      //用户时间长度为 14 20181226000000  =》 20181226000000
+      // 用户长度为12     201812260000    =》 201812260000 + defaultTime后面2位
+      // 用户长度为10     2018122600      =》 201812260000 + defaultTime后面4位
+      // 用户长度为8     20181226         =》 201812260000 + defaultTime后面6位
+      // 结果 20181226000000 14位
+      // 插入 TZ
+      var reg = /^[0-9]{8}T[0-9]{6}Z$/;
+      if(reg.test(time)){ // 用户格式 无需更改 => 20182626T000000Z
+        return time;
+      } else if(/[0-9]{8,14}/.test(time)){
+        var start  = 6 - (14 - time.length);
+        var end = defaultTime.length;
+        var  standardTime = time + defaultTime.substring(start, end);
+        return standardTime.slice(0, 8) + 'T' + standardTime.slice(8) + 'Z';
+      }else {
+        throw new Error('回放时间格式有误，请确认');
       }
     }
   };
