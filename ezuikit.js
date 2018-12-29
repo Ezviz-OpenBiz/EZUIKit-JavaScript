@@ -386,13 +386,13 @@
                 var defaultDate = new Date();
                 realUrl = realUrl + '&begin=' + defaultDate.getFullYear() + (defaultDate.getMonth() + 1) + defaultDate.getDate() + 'T000000Z';
               } else {
-                realUrl = realUrl + '&begin=' + formatRecTime(getQueryString('begin', data.data));
+                realUrl = realUrl.replace('&begin=' + getQueryString('begin', data.data), '&begin='+formatRecTime(getQueryString('begin', data.data),'000000'))
               }
               if (!getQueryString('end', data.data)) {
                 var defaultDate = new Date();
                 realUrl = realUrl + '&end=' + defaultDate.getFullYear() +  (defaultDate.getMonth() + 1)+ defaultDate.getDate() + 'T235959Z';
               } else {
-                realUrl = realUrl + '&end=' + formatRecTime(getQueryString('end', data.data));
+                realUrl = realUrl.replace('&end=' + getQueryString('end', data.data), '&end='+formatRecTime(getQueryString('end', data.data),'235959'))
               }
               // api错误处理
               if (!getQueryString('stream', data.data)) {
