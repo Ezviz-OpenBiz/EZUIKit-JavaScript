@@ -384,13 +384,13 @@
               // 兼容各种时间格式
               if (!getQueryString('begin', data.data)) {
                 var defaultDate = new Date();
-                realUrl = realUrl + '&begin=' + defaultDate.getFullYear() + (defaultDate.getMonth() + 1) + defaultDate.getDate() + 'T000000Z';
+                realUrl = realUrl + '&begin=' + defaultDate.Format('yyyyMMdd') + 'T000000Z';
               } else {
                 realUrl = realUrl.replace('&begin=' + getQueryString('begin', data.data), '&begin='+formatRecTime(getQueryString('begin', data.data),'000000'))
               }
               if (!getQueryString('end', data.data)) {
                 var defaultDate = new Date();
-                realUrl = realUrl + '&end=' + defaultDate.getFullYear() +  (defaultDate.getMonth() + 1)+ defaultDate.getDate() + 'T235959Z';
+                realUrl = realUrl + '&end=' +  defaultDate.Format('yyyyMMdd') + 'T235959Z';
               } else {
                 realUrl = realUrl.replace('&end=' + getQueryString('end', data.data), '&end='+formatRecTime(getQueryString('end', data.data),'235959'))
               }
