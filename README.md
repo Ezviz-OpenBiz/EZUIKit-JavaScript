@@ -76,6 +76,7 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
     `player.stop()`
 
 ## <a name="back">四、预览，回放</a>
+
   1.页面创建div标签
   ```
     <div id="myPlayer"></div>
@@ -99,12 +100,14 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   属性名|示例|默认值|说明
   ---|:--:|---|---:
   id| myPlayer| null|*必填，元素标签id
-  url | ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live |null| 直播地址<br>支持ezopen协议格式（推荐）<br>支持ws, wss格式预览地址播放
+  url | ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live |null| 直播地址<br>支持ezopen协议格式（推荐）<br>支持ws, wss格式预览地址播放<br>多窗口模式请用英文逗号（,）分隔
   accessToken|"at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc"|null|用户通过官网或者接口获取的accessToken
   decoderPath|解码器相对路径|null|*必填，预览需要本地加载解码器，请填写ezuikit所在相对路径|
   width|400|null|视频元素宽度
   height|400|null|视频元素高度
-  autoplay|true|false|是否自动播放
+  autoplay|true|true|是否自动播放
+  splitBasis|1|1|多窗口设置窗口切割参数
+  handleError|null|null|错误回调方法，用于捕获错误
 
 
   3.方法集
@@ -113,7 +116,29 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
     `player.play()`
   - 预览，回放停止
 
-    `player.stop()`
+    `player.stop()` 
+  
+  3.多窗口模式
+
+  >支持 1\*1，2\*2，3\*3，4\*4 多窗口播放
+  
+  >### 实现多窗口仅需两步：
+  - 设置窗口切割参数（1\*1，2\*2，3\*3，4\*4） splitBasis
+  - 多窗口url通过逗号分隔
+    ```
+    var player = new EZUIPlayer({
+        id: 'myPlayer',
+        url: {url0},{url1},{url2},{url3}, // ezopen播放地址逗号分隔
+        autoplay: true,
+        accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6*************c",
+        decoderPath: '{{location path}}',
+        width: 1200, // 宽度高度为容器规格，将按照窗口数均分
+        height: 800,
+        splitBasis: 2 //设置窗口切割参数
+      });
+  ```
+
+
 ## 五、<a name="ezopen">播放地址获取及EZOPEN协议说明</a>
 
   你可以通过开放平台官网获取各种格式视频直播地址，包含HLS格式，RTMP格式，WS格式，FLV格式等，EZUIKit支持所有格式直播视频播放。你可以将以上格式直播地址配置在UIKIT中直接播放，但需要注意，并非所有浏览器支持任意格式直播地址，为方便开发者使用，开放平台通过EZOPEN协议可以通过你终端类型帮助你轻松适配最优播放地址格式：

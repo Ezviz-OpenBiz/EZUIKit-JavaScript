@@ -28,34 +28,34 @@
 <body>
   <script src="../ezuikit.js"></script>
   <!-- <script src="../js/jsPlugin-1.2.0.js"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script> -->
   <script src="../js/jquery.min.js"></script>
-  <h2>预览，回放功能示例：</h2>
-  <textarea id="url" placeholder="这里输入ezopen地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507x.live</textarea>
+  <h2>预览，回放 多窗口模式示例：</h2>
+  <!-- <p>ezopen地址用逗号分隔</p> -->
+  <textarea id="url" placeholder="这里输入ezopen地址">ezopen://open.ys7.com/b3aaef239a974c5dbe768984d1a5731d.live,ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live,ezopen://open.ys7.com/6538e95071194d2f9ca9ca9e3c09904e.live,ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live</textarea>
+  <!-- <textarea id="url" placeholder="这里输入ezopen地址">ezopen://open.ys7.com/b3aaef239a974c5dbe768984d1a5731d.live</textarea> -->
   <textarea id="accessToken" placeholder="这里输入accessToken">at.12zcwvys36992fts7xanq6ym0dn9utxm-7auuqr4eqq-0tq3rwu-mfg4yysjw</textarea>
   <div class="btn-container">
     <button id="init">开始初始化</button>
     <button id="start">播放</button>
-    <button id="stop">停止</button>
+    <button id="stop">全部结束</button>
   </div>
-  <div id="playWind" style="width: 600px; height: 400px;">
+  <div id="playWind" style="width: 1200px; height: 800px;">
   </div>
   <script>
+    var decoder;
     $("#init").click(function () {
-      function handleError(e){
-          console.log('捕获到错误',e)
-          //alert(e)
-      }
       var url = $('#url').val().trim();
       var accessToken = $('#accessToken').val().trim();
-      var decoder = new EZUIKit.EZUIPlayer({
+      decoder = new EZUIKit.EZUIPlayer({
         id: 'playWind',
         autoplay: true,
         url: url,
         accessToken: accessToken,
         decoderPath: '../',
-        width: 600,
-        height: 400,
-        handleError: handleError,
+        width: 1200,
+        height: 800,
+        splitBasis: 2, // 1*1 2*2 3*3 4*4
       });
       // 这里是打印日志，本例抛出到播放页面
       decoder.on('log', log);
@@ -65,24 +65,17 @@
         document.body.appendChild(div);
       }
       $("#start").click(function () {
-        function handleError(e){
-          console.log('handleError',e)
-        }
-        function handleSuccess(){
-          console.log('handleSuccess')
-        }
         decoder.play({
-          handleError: handleError,
+          //index:[0,1],
+          // handleError: handleError,
+          // handleSuccess: handleSuccess,
         });
-      })
-      $("#pause").click(function () {
-        decoder.pause();
       })
       $("#stop").click(function () {
         decoder.stop();
       })
-
     })
+
   </script>
 </body>
 
