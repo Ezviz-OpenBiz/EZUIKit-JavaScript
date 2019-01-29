@@ -1,6 +1,7 @@
 # UIKit JavaScript使用文档
 - [简介](#intro)
 - [获取UIKit JavaScript](#get)
+- [示例](#demo)
 - [直播](#live)
 - [预览、回放](#back)
 - [播放地址获取及EZOPEN协议说明](#ezopen)
@@ -32,7 +33,12 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   `<script src="https://open.ys7.com/sdk/js/1.4/ezuikit.js"></script>`
 
    >*ps : 页面引入方式适用直播场景，预览和回放功能实现原理为本地解码，需要本地引入的方式加载本地解码库*
-## <a name="live">三、直播</a>
+## <a name="demo">三、示例</a>
+>环境准备：需确认本地80端口未被占用
+- 运行webs.exe
+- 浏览器输入http://localhost/index.html 即可体验
+>注意：开发时需将包放到服务器上，不支持引用。
+## <a name="live">四、直播</a>
   1.页面创建video标签
 
   ```
@@ -75,7 +81,7 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
 
     `player.stop()`
 
-## <a name="back">四、预览，回放</a>
+## <a name="back">五、预览，回放</a>
 
   1.页面创建div标签
   ```
@@ -139,7 +145,7 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   ```
 
 
-## 五、<a name="ezopen">播放地址获取及EZOPEN协议说明</a>
+## 六、<a name="ezopen">播放地址获取及EZOPEN协议说明</a>
 
   你可以通过开放平台官网获取各种格式视频直播地址，包含HLS格式，RTMP格式，WS格式，FLV格式等，EZUIKit支持所有格式直播视频播放。你可以将以上格式直播地址配置在UIKIT中直接播放，但需要注意，并非所有浏览器支持任意格式直播地址，为方便开发者使用，开放平台通过EZOPEN协议可以通过你终端类型帮助你轻松适配最优播放地址格式：
   EZOPEN协议格式为 ：
