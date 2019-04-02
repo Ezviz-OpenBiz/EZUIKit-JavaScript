@@ -1,5 +1,5 @@
 /**
- * jssdk 2.0
+ * jssdk 2.4
  */
 (function (global, factory) {
 
@@ -213,7 +213,6 @@
           }
         })
         .catch(function(err){
-          console.log('获取地址错误，',err);
           var initDecoder = _this.initDecoder(playParams);
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
             initDecoder.then(function () {
@@ -344,7 +343,6 @@
     if (playParams && playParams.env) {
       apiDomain = playParams.env.domain;
     }
-
     /** jsDecoder 获取真实地址 -- 开始 */
     if (playParams && playParams.decoderPath) {
       var getRealUrlPromise = function (resolve, reject, ezopenURL) {
@@ -371,6 +369,12 @@
           var apiUrl = apiDomain + "/api/lapp/live/url/ezopen";
           var apiSuccess = function (data) {
             if (data.code == 200 || data.retcode == 0) {
+              // 处理验证码
+              var validateCode = getQueryString('validateCode',data.data);
+              //var validateCode = 'ZQGWMV';
+              if(validateCode){
+                _this.opt.validateCode = validateCode;
+              }
               realUrl += data.data;
               /**参数容错处理  start*/
               if (data.data.indexOf('playback') !== -1) { //回放
@@ -431,12 +435,10 @@
       });
       var getRealUrlPromiseObj = Promise.all(promiseTaskList)
       .then(function (result) {
-        console.log("result",result)
         _this.opt.sources = result;
         _this.opt.currentSource = result[0];
       })
       .catch(function(err){
-        console.log("result-erro",err)
       })
       return getRealUrlPromiseObj;
     } else {
@@ -893,8 +895,8 @@
     } else if (!!this.jSPlugin) {
       var _this = this;
       function getPlayParams(url) {
-        console.log('播放的URL',url)
-        
+        _this.jSPlugin.JS_OpenSound(0);
+       // _this.jSPlugin.JS_SetVolume(0,100);
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
         var websocketStreamingParam = (url.indexOf('/live')=== -1 ? '/playback?': '/live?') + url.split('?')[1];
         return { websocketConnectUrl, websocketStreamingParam }
@@ -905,6 +907,9 @@
             console.log("realplay success");
             if (params && params.handleSuccess) {
               params.handleSuccess();
+                      // 默认开启声音
+        _this.jSPlugin.JS_OpenSound(0);
+        // _this.jSPlugin.JS_SetVolume(0,100);
             }
           }, function (err) {
             console.log("realplay failed", err.oError);
@@ -939,7 +944,7 @@
     var _this = this;
     // DOM id
     function initDecoder(resolve, reject) {
-      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js';
+      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0_test.js';
 
       /** 初始化解码器 */
       addJs(jsPluginPath, function () {
@@ -955,6 +960,11 @@
           szBasePath: playParams.decoderPath + '/js/',
         });
         _this.log("初始化解码器----完成");
+        _this.log("开始设置秘钥");
+        var validateCode = _this.opt.validateCode;
+        if(validateCode){
+          _this.jSPlugin.JS_SetSecretKey(0, validateCode);
+        }
         resolve('200 OK')
       });
       /** 
@@ -1016,11 +1026,14 @@
     this.log("停止播放" + this.opt.currentSource);
     this.opt.autoplay = false;
     if (!!window['CKobject']) {
-      CKobject.getObjectById(this.flashId).videoClear();
+      //CKobject.getObjectById(this.flashId).destroy();
+      this.video.src=""
+      // this.video.remove();
     } else if (!!this.video) {
       if (!!this.hls) {   // hls停止依赖this.hls
         // 通过暂停停止播放
         this.video.pause();
+        this.video.src=""
         // 停止取流
         this.hls.stopLoad();
       } else if (!!this.flv) {

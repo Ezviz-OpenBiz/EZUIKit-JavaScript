@@ -33,9 +33,8 @@
   <textarea id="url" placeholder="这里输入ezopen地址"></textarea>
   <textarea id="accessToken" placeholder="这里输入accessToken"></textarea>
   <div class="btn-container">
-    <button id="init">开始初始化</button>
-    <button id="start">播放</button>
-    <button id="stop">停止</button>
+    <button id="init">初始化播放</button>
+    <button id="stop">结束</button>
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
   </div>
@@ -56,6 +55,9 @@
         width: 600,
         height: 400,
         handleError: handleError,
+        env: {
+          domain: 'https://test2.ys7.com:65'
+        }
       });
       // 这里是打印日志，本例抛出到播放页面
       decoder.on('log', log);

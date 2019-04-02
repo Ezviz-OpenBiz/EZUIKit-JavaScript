@@ -30,15 +30,15 @@
 
 <body>
     <!-- ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b[.hd].live.[rtmp|hls|ws|flv|m3u8] http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.hd.m3u8-->
-  <textarea id="url" placeholder="这里输入直播地址">ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.hd.live</textarea>
+  <textarea id="url" placeholder="这里输入直播地址">http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8</textarea>
   <div class="btn-container">
-    <button id="init">开始初始化</button>
-    <button id="start">播放</button>
-    <button id="stop">停止</button>
+    <button id="init">初始化播放</button>
+    <button id="stop">结束</button>
   </div>
 
   <video 
     id="myPlayer"
+    autoplay
     src=""
     controls
     playsInline 
@@ -50,9 +50,6 @@
     $('#init').click(function () {
       var url = $('#url').val().trim();
       $('#myPlayer').attr("src", url);
-      console.log("url", url);
-      console.log("video", $('myPlayer'))
-
       var player = new EZUIKit.EZUIPlayer('myPlayer');
       // 日志
       player.on('log', log);
@@ -62,13 +59,6 @@
         div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
         document.body.appendChild(div);
       }
-      //  decoder.play();
-      $("#start").click(function () {
-        player.play();
-      })
-      $("#pause").click(function () {
-        player.pause();
-      })
       $("#stop").click(function () {
         player.stop();
       })
