@@ -192,6 +192,7 @@
        * 调试模式配置
        * 可通过dev属性指定API服务域名
        */
+      var domain = "https://open.ys7.com";
       if (playParams.env) {
         var environmentParams = playParams.env;
         domain = environmentParams.domain;
@@ -579,7 +580,8 @@
           this.video.style.heght = this.opt.height = Number(this.opt.width.replace(/px$/g, '')) * 9 / 16 + 'px';
           this.initVideoEvent();
         } else {
-          if (isHttps) {
+          var isPlayUrlHttps = playParams.indexOf('https') !== -1;
+          if (isHttps && !isPlayUrlHttps) { //https网站，http视频源安全问题需要flash播放
             addJs(ckplayerJS, function () {
               me.initCKPlayer();
             });
@@ -899,7 +901,7 @@
        // _this.jSPlugin.JS_SetVolume(0,100);
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
         var websocketStreamingParam = (url.indexOf('/live')=== -1 ? '/playback?': '/live?') + url.split('?')[1];
-        return { websocketConnectUrl, websocketStreamingParam }
+        return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
@@ -993,7 +995,7 @@
             appKey: '26810f3acd794862b608b6cfbc32a6b8',
           },
           '',
-          success,
+          success
         );
       } else {
         var storage = window.localStorage;
@@ -1008,7 +1010,7 @@
               appKey: '26810f3acd794862b608b6cfbc32a6b8',
             },
             '',
-            success,
+            success
           );
         } else {
           _this.errorCode = storage['errorCode'];
