@@ -371,7 +371,7 @@
           var apiSuccess = function (data) {
             if (data.code == 200 || data.retcode == 0) {
               // 处理验证码
-              var validateCode = getQueryString('validateCode',data.data);
+              var validateCode = getQueryString('checkCode',data.data);
               //var validateCode = 'ZQGWMV';
               if(validateCode){
                 _this.opt.validateCode = validateCode;
