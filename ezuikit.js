@@ -961,6 +961,10 @@
           iCurrentSplit: playParams.splitBasis || 1,
           szBasePath: playParams.decoderPath + '/js/',
         });
+          // 注册全屏事件
+        window.onresize = function () {
+          _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
+        }
         _this.log("初始化解码器----完成");
         _this.log("开始设置秘钥");
         var validateCode = _this.opt.validateCode;
