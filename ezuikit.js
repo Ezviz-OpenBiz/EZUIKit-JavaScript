@@ -957,8 +957,8 @@
           iType: 1,
           iWidth: playParams.width || 600,
           iHeight: playParams.height || 400,
-          iMaxSplit: 4,
-          iCurrentSplit: playParams.splitBasis || 1,
+          iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),
+          iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           szBasePath: playParams.decoderPath + '/js/',
         });
           // 注册全屏事件
