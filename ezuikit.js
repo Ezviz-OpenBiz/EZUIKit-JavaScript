@@ -905,6 +905,7 @@
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
+          console.log("ready realplay")
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
             console.log("realplay success");
             if (params && params.handleSuccess) {
@@ -1089,7 +1090,17 @@
       }
     }
   };
-
+  EZUIPlayer.prototype.getOSDTime = function(callback,iWind){
+    if (!!this.jSPlugin){
+      this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function(iTime){
+        callback(iTime * 1000);
+      }, function (err) {
+        console.log("get OSD Time error", err);
+      });
+    }else {
+      throw new Error("Method  not support");
+    }
+  }
   EZUIPlayer.prototype.pause = function () {
     this.opt.autoplay = false;
     if (!!window['CKobject']) {
