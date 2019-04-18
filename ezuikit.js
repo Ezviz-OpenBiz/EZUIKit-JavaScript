@@ -896,23 +896,22 @@
       }
     } else if (!!this.jSPlugin) {
       var _this = this;
-      function getPlayParams(url) {
+      // 默认开启第一路声音
+      setTimeout(function(){
+        _this.log("默认开启第一路声音")
         _this.jSPlugin.JS_OpenSound(0);
-       // _this.jSPlugin.JS_SetVolume(0,100);
+      },5000)
+      function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
         var websocketStreamingParam = (url.indexOf('/live')=== -1 ? '/playback?': '/live?') + url.split('?')[1];
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
-          console.log("ready realplay")
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
             console.log("realplay success");
             if (params && params.handleSuccess) {
               params.handleSuccess();
-                      // 默认开启声音
-        _this.jSPlugin.JS_OpenSound(0);
-        // _this.jSPlugin.JS_SetVolume(0,100);
             }
           }, function (err) {
             console.log("realplay failed", err.oError);
@@ -1090,6 +1089,7 @@
       }
     }
   };
+  // 获取OSD时间
   EZUIPlayer.prototype.getOSDTime = function(callback,iWind){
     if (!!this.jSPlugin){
       this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function(iTime){
@@ -1097,6 +1097,14 @@
       }, function (err) {
         console.log("get OSD Time error", err);
       });
+    }else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 开启声音
+  EZUIPlayer.prototype.openSound = function(iWind){
+    if (!!this.jSPlugin){
+      this.jSPlugin.JS_OpenSound(iWind || 0)
     }else {
       throw new Error("Method  not support");
     }
