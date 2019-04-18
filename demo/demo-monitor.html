@@ -30,11 +30,13 @@
   <!-- <script src="../js/jsPlugin-1.2.0.js"></script> -->
   <script src="../js/jquery.min.js"></script>
   <h2>预览，回放功能示例：</h2>
-  <textarea id="url" placeholder="这里输入ezopen地址"></textarea>
-  <textarea id="accessToken" placeholder="这里输入accessToken"></textarea>
+  <textarea id="url" placeholder="这里输入ezopen地址">ezopen://OINZHP@open.ys7.com/210699125/1.live</textarea>
+  <textarea id="accessToken" placeholder="这里输入accessToken">at.6bqeyhnj2njj33pg0qnw3b44bnbctcaa-26j9fblq2e-0ltz2oh-yakx9mq7x</textarea>
   <div class="btn-container">
     <button id="init">初始化播放</button>
     <button id="stop">结束</button>
+    <button id="getOSDTime">获取OSD时间</button>
+    <button id="openSound">打开声音（默认已经开启）</button>
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
   </div>
@@ -80,7 +82,16 @@
       $("#stop").click(function () {
         decoder.stop();
       })
-
+      $("#getOSDTime").click(function () {
+        var callback = function(iTime){
+          alert(iTime);
+          console.log("iTime",iTime);
+        }
+        decoder.getOSDTime(callback);
+      })
+      $("#openSound").click(function () {
+        decoder.openSound();
+      })
     })
   </script>
 </body>
