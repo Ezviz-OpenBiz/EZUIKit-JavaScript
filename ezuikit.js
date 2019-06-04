@@ -213,14 +213,14 @@
             })
           }
         })
-        .catch(function(err){
-          var initDecoder = _this.initDecoder(playParams);
-          if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
-            initDecoder.then(function () {
-             // _this.play({ handleError: playParams.handleError });
-            })
-          }
-        });
+          .catch(function (err) {
+            var initDecoder = _this.initDecoder(playParams);
+            if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
+              initDecoder.then(function () {
+                // _this.play({ handleError: playParams.handleError });
+              })
+            }
+          });
       }
     } else {
       var elementID = '';
@@ -371,9 +371,9 @@
           var apiSuccess = function (data) {
             if (data.code == 200 || data.retcode == 0) {
               // 处理验证码
-              var validateCode = getQueryString('checkCode',data.data);
+              var validateCode = getQueryString('checkCode', data.data);
               //var validateCode = 'ZQGWMV';
-              if(validateCode){
+              if (validateCode) {
                 _this.opt.validateCode = validateCode;
               }
               realUrl += data.data;
@@ -435,12 +435,12 @@
         promiseTaskList.push(promiseTaskFun(item));
       });
       var getRealUrlPromiseObj = Promise.all(promiseTaskList)
-      .then(function (result) {
-        _this.opt.sources = result;
-        _this.opt.currentSource = result[0];
-      })
-      .catch(function(err){
-      })
+        .then(function (result) {
+          _this.opt.sources = result;
+          _this.opt.currentSource = result[0];
+        })
+        .catch(function (err) {
+        })
       return getRealUrlPromiseObj;
     } else {
       if (!this.opt.currentSource) {
@@ -896,35 +896,46 @@
       }
     } else if (!!this.jSPlugin) {
       var _this = this;
-      // 默认开启第一路声音
-      setTimeout(function(){
-        _this.log("默认开启第一路声音")
-        _this.jSPlugin.JS_OpenSound(0);
-      },5000)
       function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
-        var websocketStreamingParam = (url.indexOf('/live')=== -1 ? '/playback?': '/live?') + url.split('?')[1];
+        var websocketStreamingParam = (url.indexOf('/live') === -1 ? '/playback?' : '/live?') + url.split('?')[1];
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
-            console.log("realplay success");
+            console.log("realplay success",index);
+            // 默认开启声音
+            // 默认开启第一路声音
+            if (index === 0) {
+              _this.log("默认开启第一路声音");
+              setTimeout(() => {
+                _this.jSPlugin.JS_OpenSound(0);
+              }, 100)
+            }
             if (params && params.handleSuccess) {
               params.handleSuccess();
             }
           }, function (err) {
             console.log("realplay failed", err.oError);
             if (params && params.handleError) {
-              var errorInfo = JSON.parse(_this.errorCode).find(function(item){return item.detailCode.substr(-4) == err.oError.errorCode})
-              params.handleError({retcode: err.oError.errorCode,msg: errorInfo ? errorInfo.description :  '其他错误'});
+              var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
+              params.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
             }
           })
         })
       } else {
         params.index.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(_this.opt.sources[item]).websocketConnectUrl, { playURL: getPlayParams(_this.opt.sources[item]).websocketStreamingParam }, item).then(function () {
-            console.log("realplay success");
+            console.log("realplay success",index);
+            // 默认开启第一路声音
+            if (index === 0) {
+              _this.log("默认开启第一路声音");
+              console.log("默认开启第一路声音")
+              setTimeout(() => {
+                _this.jSPlugin.JS_OpenSound(0);
+              }, 100)
+            }
             if (params && params.handleSuccess) {
               params.handleSuccess();
             }
@@ -961,14 +972,14 @@
           iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           szBasePath: playParams.decoderPath + '/js/',
         });
-          // 注册全屏事件
+        // 注册全屏事件
         window.onresize = function () {
           _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
         }
         _this.log("初始化解码器----完成");
         _this.log("开始设置秘钥");
         var validateCode = _this.opt.validateCode;
-        if(validateCode){
+        if (validateCode) {
           _this.jSPlugin.JS_SetSecretKey(0, validateCode);
         }
         resolve('200 OK')
@@ -1003,8 +1014,8 @@
         );
       } else {
         var storage = window.localStorage;
-        var errorCode=storage.errorCode;
-        if(!errorCode){
+        var errorCode = storage.errorCode;
+        if (!errorCode) {
           request(
             playParams.decoderPath + "/js/errorCode.json",
             "get",
@@ -1020,7 +1031,7 @@
           _this.errorCode = storage['errorCode'];
         }
       }
-     
+
 
     }
     var initDecoderPromise = new Promise(initDecoder);
@@ -1033,13 +1044,13 @@
     this.opt.autoplay = false;
     if (!!window['CKobject']) {
       //CKobject.getObjectById(this.flashId).destroy();
-      this.video.src=""
+      this.video.src = ""
       // this.video.remove();
     } else if (!!this.video) {
       if (!!this.hls) {   // hls停止依赖this.hls
         // 通过暂停停止播放
         this.video.pause();
-        this.video.src=""
+        this.video.src = ""
         // 停止取流
         this.hls.stopLoad();
       } else if (!!this.flv) {
@@ -1090,22 +1101,22 @@
     }
   };
   // 获取OSD时间
-  EZUIPlayer.prototype.getOSDTime = function(callback,iWind){
-    if (!!this.jSPlugin){
-      this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function(iTime){
+  EZUIPlayer.prototype.getOSDTime = function (callback, iWind) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function (iTime) {
         callback(iTime * 1000);
       }, function (err) {
         console.log("get OSD Time error", err);
       });
-    }else {
+    } else {
       throw new Error("Method  not support");
     }
   }
   // 开启声音
-  EZUIPlayer.prototype.openSound = function(iWind){
-    if (!!this.jSPlugin){
+  EZUIPlayer.prototype.openSound = function (iWind) {
+    if (!!this.jSPlugin) {
       this.jSPlugin.JS_OpenSound(iWind || 0)
-    }else {
+    } else {
       throw new Error("Method  not support");
     }
   }
