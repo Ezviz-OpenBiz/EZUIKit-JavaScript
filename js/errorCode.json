@@ -2,6 +2,104 @@
     "data": [
         {
             "moduleCode": "",
+            "detailCode": "405984",
+            "description": "",
+            "solution": "",
+            "updateTime": 1559564188000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "10035",
+            "description": "获取子账户AccessToken异常,子账户不存在或子账户不属于该开发者",
+            "solution": "",
+            "updateTime": 1559551958000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "1052674",
+            "description": "获取本地录像失败",
+            "solution": "",
+            "updateTime": 1558579653000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "395547",
+            "description": "",
+            "solution": "",
+            "updateTime": 1557367296000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "12",
+            "description": "",
+            "solution": "",
+            "updateTime": 1557229476000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "10052",
+            "description": "余额不足",
+            "solution": "",
+            "updateTime": 1557121463000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "20108",
+            "description": "当前用户和所添加用户不是好友关系",
+            "solution": "",
+            "updateTime": 1556541725000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "10009",
+            "description": "",
+            "solution": "",
+            "updateTime": 1556422452000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "320001",
+            "description": "通道不存在",
+            "solution": "请检查录像机的关联状态是否正常，没有摄像头的通道无法播放",
+            "updateTime": 1556419044000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "120001",
+            "description": "通道不存在",
+            "solution": "请检查录像机的关联状态是否正常，没有摄像头的通道无法播放",
+            "updateTime": 1556419030000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "320049",
+            "description": "",
+            "solution": "",
+            "updateTime": 1556272984000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "380227",
+            "description": "",
+            "solution": "",
+            "updateTime": 1556264379000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "10033",
+            "description": "policy参数信息异常",
+            "solution": "",
+            "updateTime": 1555922124000
+        },
+        {
+            "moduleCode": "",
+            "detailCode": "10065",
+            "description": "weakAppKey 不属于accessToken对应的用户",
+            "solution": "",
+            "updateTime": 1555497522000
+        },
+        {
+            "moduleCode": "",
             "detailCode": "395416",
             "description": "设备达到最大连接数，无法建立连接",
             "solution": "请升级设备固件版本",
@@ -804,13 +902,6 @@
             "description": "订阅操作失败",
             "solution": "",
             "updateTime": 1542979006000
-        },
-        {
-            "moduleCode": "",
-            "detailCode": "10035",
-            "description": "获取子账户AccessToken异常",
-            "solution": "",
-            "updateTime": 1542978856000
         },
         {
             "moduleCode": "",
@@ -3978,13 +4069,6 @@
         },
         {
             "moduleCode": "",
-            "detailCode": "120001",
-            "description": "通道不存在",
-            "solution": "请检查摄像头设备是否重新添加过、通道参数是否更新",
-            "updateTime": 1522034840000
-        },
-        {
-            "moduleCode": "",
             "detailCode": "160047",
             "description": "码流类型不支持",
             "solution": "",
@@ -4610,13 +4694,6 @@
             "moduleCode": "",
             "detailCode": "361011",
             "description": "设备10s响应超时",
-            "solution": "",
-            "updateTime": 1522034840000
-        },
-        {
-            "moduleCode": "",
-            "detailCode": "320001",
-            "description": "未知错误",
             "solution": "",
             "updateTime": 1522034840000
         },
