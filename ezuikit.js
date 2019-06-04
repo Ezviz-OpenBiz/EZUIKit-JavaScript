@@ -904,7 +904,7 @@
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
-            console.log("realplay success",index);
+            console.log("realplay success", index);
             // 默认开启声音
             // 默认开启第一路声音
             if (index === 0) {
@@ -927,7 +927,7 @@
       } else {
         params.index.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(_this.opt.sources[item]).websocketConnectUrl, { playURL: getPlayParams(_this.opt.sources[item]).websocketStreamingParam }, item).then(function () {
-            console.log("realplay success",index);
+            console.log("realplay success", index);
             // 默认开启第一路声音
             if (index === 0) {
               _this.log("默认开启第一路声音");
@@ -1116,6 +1116,30 @@
   EZUIPlayer.prototype.openSound = function (iWind) {
     if (!!this.jSPlugin) {
       this.jSPlugin.JS_OpenSound(iWind || 0)
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 视频截图
+  EZUIPlayer.prototype.capturePicture = function (iWind, pictureName) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_CapturePicture(iWind, pictureName)
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 开始录像
+  EZUIPlayer.prototype.startSave = function (iWind, fileName) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_StartSave(iWind, fileName)
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 结束录像
+  EZUIPlayer.prototype.stopSave = function (iWind) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_StopSave(iWind)
     } else {
       throw new Error("Method  not support");
     }
