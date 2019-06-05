@@ -205,11 +205,11 @@
       var getRealUrl = this.getRealUrl(playParams);
       /**是否自动播放 */
       if (isPromise(getRealUrl)) {
-        getRealUrl.then(function () {
+        getRealUrl.then(function (data) {
           var initDecoder = _this.initDecoder(playParams);
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
-            initDecoder.then(function () {
-              _this.play({ handleError: playParams.handleError });
+            initDecoder.then(function (data) {
+              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess });
             })
           }
         })
@@ -337,6 +337,10 @@
       }
     }
   };
+  // 日志
+  EZUIPlayer.prototype.log = function (msg, className) {
+    this.emit('log', msg, className);
+  };
 
   EZUIPlayer.prototype.getRealUrl = function (playParams) {
     var _this = this;
@@ -358,13 +362,21 @@
               // _this.opt.currentSource = realUrl;
               resolve(realUrl);
             } else {
-              resolve('get realURL error')
+              // 将错误信息捕获到用户自定义错误回调中
+              if (playParams && playParams.handleError) {
+                playParams.handleError(data);
+              }
+              reject(JSON.stringify(data));
               throw new Error('获取播放token失败');
             }
           }
           var nodeError = function (error) {
-            console.log("getdecoder url from api error", error);
-            throw new Error('获取播放token失败');
+             // 将错误信息捕获到用户自定义错误回调中
+             if(playParams && playParams.handleError){
+              playParams.handleError(error);
+            }
+            reject(JSON.stringify(error))
+            throw new Error('获取播放token失败', 'error');
           }
           // 向API请求真实地址
           var apiUrl = apiDomain + "/api/lapp/live/url/ezopen";
@@ -399,14 +411,21 @@
               }
               request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
             } else {
-              resolve('get realURL error')
+              // 将错误信息捕获到用户自定义错误回调中
+              if (playParams && playParams.handleError) {
+                playParams.handleError(data);
+              }
+              reject(JSON.stringify(data), 'error')
               //throw new Error('获取播放设备信息失败');
             }
             /**参数容错处理  end*/
           }
           var apiError = function (error) {
-            console.log("getdecoder url from api error", error);
-            resolve('get realURL error')
+            // 将错误信息捕获到用户自定义错误回调中
+            if (playParams && playParams.handleError) {
+              playParams.handleError(error);
+            }
+            reject(JSON.stringify(error))
             //throw new Error('获取播放设备信息失败');
           }
           var isHttp = 'false';
@@ -436,15 +455,17 @@
       });
       var getRealUrlPromiseObj = Promise.all(promiseTaskList)
         .then(function (result) {
+          // 获取真实地址成功后，赋值到opt属性中
           _this.opt.sources = result;
           _this.opt.currentSource = result[0];
         })
         .catch(function (err) {
+          _this.log("获取真实地址错误" + JSON.stringify(err), 'error')
         })
       return getRealUrlPromiseObj;
     } else {
       if (!this.opt.currentSource) {
-        this.log('未找到合适的播放URL');
+        this.log('未找到合适的播放URL', 'error');
         return;
       }
       var me = this;
@@ -512,7 +533,6 @@
                 that.video.load();
                 that.tryPlay(data.data);
               } else {
-                console.log("平台获取播放地址错误")
                 that.log('data：   ' + JSON.stringify(data));
                 throw new Error(data.msg);
                 return;
@@ -669,10 +689,6 @@
     this.hls = hls;
   };
 
-  // 日志
-  EZUIPlayer.prototype.log = function (msg) {
-    this.emit('log', msg);
-  };
 
   // 初始化ckplayer
   EZUIPlayer.prototype.initCKPlayer = function (url) {
@@ -904,20 +920,21 @@
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
-            console.log("realplay success", index);
+            _this.log('播放成功，当前播放第' + (index + 1) + '路');
             // 默认开启声音
             // 默认开启第一路声音
             if (index === 0) {
-              _this.log("默认开启第一路声音");
+              _this.log("默认开启第1路声音");
               setTimeout(() => {
                 _this.jSPlugin.JS_OpenSound(0);
               }, 100)
             }
+            // 播放成功回调
             if (params && params.handleSuccess) {
               params.handleSuccess();
             }
           }, function (err) {
-            console.log("realplay failed", err.oError);
+            _this.log('播放失败' + JSON.stringify(err), 'error');
             if (params && params.handleError) {
               var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
               params.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
@@ -927,11 +944,10 @@
       } else {
         params.index.forEach(function (item, index) {
           _this.jSPlugin.JS_Play(getPlayParams(_this.opt.sources[item]).websocketConnectUrl, { playURL: getPlayParams(_this.opt.sources[item]).websocketStreamingParam }, item).then(function () {
-            console.log("realplay success", index);
+            _this.log('播放成功，当前播放第' + (index + 1) + '路')
             // 默认开启第一路声音
             if (index === 0) {
               _this.log("默认开启第一路声音");
-              console.log("默认开启第一路声音")
               setTimeout(() => {
                 _this.jSPlugin.JS_OpenSound(0);
               }, 100)
@@ -940,7 +956,7 @@
               params.handleSuccess();
             }
           }, function (err) {
-            console.log("realplay failed", err.oError);
+            _this.log('播放失败' + JSON.stringify(err), 'error');
             if (params && params.handleError) {
               var errInfo = err.oError;// 包装错误码
               params.handleError(errInfo);
@@ -977,9 +993,9 @@
           _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
         }
         _this.log("初始化解码器----完成");
-        _this.log("开始设置秘钥");
         var validateCode = _this.opt.validateCode;
         if (validateCode) {
+          _this.log("开始设置秘钥");
           _this.jSPlugin.JS_SetSecretKey(0, validateCode);
         }
         resolve('200 OK')
