@@ -82,9 +82,9 @@
   function dclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
     var logObj = {
-      Ver: 'v.2.3.0',
+      Ver: 'v.2.4.5',
       PlatAddr: domain,
-      ExterVer: 'Ez.2.3.0',
+      ExterVer: 'Ez.2.4.5',
       CltType: 102,
       StartTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),  // 每个日志包含当前的时间
       OS: navigator.platform
@@ -166,10 +166,10 @@
     this.handlers = {};
 
     // 修订 - 支持JS Decoder 允许非字符串配置项
-    if (typeof playParams === 'object' && playParams.decoderPath) {
+    if (typeof playParams === 'object') {
       /* 校验播放器配置参数合法性 */
       // 解码器路径
-      if (typeof playParams.decoderPath !== 'string' || typeof playParams.decoderPath === 'undefined') {
+      if (typeof playParams.decoderPath === 'undefined') {
         throw new Error('EZUIDecoder requires the path of decoder');
         return;
       }
@@ -291,7 +291,6 @@
     /* 创建播放，错误，停止事件钩子，上报用户行为 */
     this.handlers = {};
     this.initTime = (new Date()).getTime();
-
     this.on('play', function () {
       // 上报播放成功信息
       dclog({
@@ -349,7 +348,7 @@
       apiDomain = playParams.env.domain;
     }
     /** jsDecoder 获取真实地址 -- 开始 */
-    if (playParams && playParams.decoderPath) {
+    if (playParams && typeof playParams === 'object') {
       var getRealUrlPromise = function (resolve, reject, ezopenURL) {
         var realUrl = '';
         if (!/^ezopen:\/\//.test(ezopenURL)) { // JSDecoder ws协议播放
@@ -371,8 +370,8 @@
             }
           }
           var nodeError = function (error) {
-             // 将错误信息捕获到用户自定义错误回调中
-             if(playParams && playParams.handleError){
+            // 将错误信息捕获到用户自定义错误回调中
+            if (playParams && playParams.handleError) {
               playParams.handleError(error);
             }
             reject(JSON.stringify(error))
@@ -382,12 +381,6 @@
           var apiUrl = apiDomain + "/api/lapp/live/url/ezopen";
           var apiSuccess = function (data) {
             if (data.code == 200 || data.retcode == 0) {
-              // 处理验证码
-              var validateCode = getQueryString('checkCode', data.data);
-              //var validateCode = 'ZQGWMV';
-              if (validateCode) {
-                _this.opt.validateCode = validateCode;
-              }
               realUrl += data.data;
               /**参数容错处理  start*/
               if (data.data.indexOf('playback') !== -1) { //回放
@@ -895,7 +888,7 @@
 
   EZUIPlayer.prototype.play = function (params) {
     //var index = params.index;
-    this.log("开始播放" + this.opt.currentSource);
+   
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
       this.initCKPlayer();
@@ -919,6 +912,13 @@
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
+          _this.log("开始播放, 第" + (index+1)+ '路，' + '地址：' + item);
+          // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
+          var validateCode = getQueryString('checkCode', item);
+          if (validateCode) {
+            _this.log('设置秘钥，视频路数：' + (index + 1) + '验证码：' + validateCode)
+            _this.jSPlugin.JS_SetSecretKey(index, validateCode);
+          }
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
             _this.log('播放成功，当前播放第' + (index + 1) + '路');
             // 默认开启声音
@@ -933,8 +933,29 @@
             if (params && params.handleSuccess) {
               params.handleSuccess();
             }
+            // 播放成功日志上报
+            dclog({
+              systemName: PLAY_MAIN,
+              playurl: encodeURIComponent(item),
+              Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
+              Enc: 0,  // 0 不加密 1 加密
+              PlTp: 1,  // 1 直播 2 回放
+              Via: 2,  // 2 服务端取流
+              ErrCd: 0,
+              Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
+              Serial: getQueryString('dev',item),
+              Channel: getQueryString('chn',item),
+            });
           }, function (err) {
             _this.log('播放失败' + JSON.stringify(err), 'error');
+            dclog({
+              systemName: PLAY_MAIN,
+              playurl: encodeURIComponent(item),
+              cost: -1,
+              ErrCd: -1,
+              Serial: getQueryString('dev',item),
+              Channel: getQueryString('chn',item),
+            });
             if (params && params.handleError) {
               var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
               params.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
@@ -986,18 +1007,13 @@
           iHeight: playParams.height || 400,
           iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
-          szBasePath: playParams.decoderPath + '/js/',
+          szBasePath: playParams.decoderPath + '/js',
         });
         // 注册全屏事件
         window.onresize = function () {
           _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
         }
         _this.log("初始化解码器----完成");
-        var validateCode = _this.opt.validateCode;
-        if (validateCode) {
-          _this.log("开始设置秘钥");
-          _this.jSPlugin.JS_SetSecretKey(0, validateCode);
-        }
         resolve('200 OK')
       });
       /** 
