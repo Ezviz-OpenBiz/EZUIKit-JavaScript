@@ -10,6 +10,11 @@
     body {
       margin: 0;
     }
+    .hint {
+      font-size: 14px;
+      line-height: 3em;
+      color: gray;
+    }
 
     #url {
       width: 100%;
@@ -30,7 +35,8 @@
 
 <body>
     <!-- ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b[.hd].live.[rtmp|hls|ws|flv|m3u8] http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.hd.m3u8-->
-  <textarea id="url" placeholder="这里输入直播地址">http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8</textarea>
+    <div class="hint">demo页面仅为代码示例无法直接运行，需要部署到服务器上才可以播放。另外监控模式与多窗口模式对浏览器版本有要求：Chrome: 55+ Firefox: V55+。</div>
+    <textarea id="url" placeholder="这里输入直播地址">http://hls.open.ys7.com/openlive/f01018a141094b7fa138b9d0b856507b.m3u8</textarea>
   <div class="btn-container">
     <button id="init">初始化播放</button>
     <button id="stop">结束</button>

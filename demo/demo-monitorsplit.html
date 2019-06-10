@@ -10,7 +10,11 @@
     body {
       margin: 0;
     }
-
+    .hint {
+      font-size: 14px;
+      line-height: 3em;
+      color: gray;
+    }
     #url,
     #url2,
     #accessToken {
@@ -19,6 +23,14 @@
 
     .btn-container {
       margin: 10px;
+    }
+    .normal {
+      color: green;
+      margin: 5px;
+    }
+    .error {
+      color: red;
+      margin: 5px;
     }
   </style>
 </head>
@@ -29,6 +41,7 @@
   <script src="../ezuikit.js"></script>
   <!-- <script src="../js/jsPlugin-1.2.0.js"></script> -->
   <!-- <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script> -->
+  <div class="hint">demo页面仅为代码示例无法直接运行，需要部署到服务器上才可以播放。另外监控模式与多窗口模式对浏览器版本有要求：Chrome: 55+ Firefox: V55+。</div>
   <script src="../js/jquery.min.js"></script>
   <h2>预览，回放 多窗口模式示例：</h2>
   <!-- <p>ezopen地址用逗号分隔</p> -->
@@ -58,8 +71,9 @@
       });
       // 这里是打印日志，本例抛出到播放页面
       decoder.on('log', log);
-      function log(str) {
+      function log(str,className) {
         var div = document.createElement('DIV');
+        div.className=className || 'normal';
         div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
         document.body.appendChild(div);
       }

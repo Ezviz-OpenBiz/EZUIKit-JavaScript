@@ -10,7 +10,11 @@
     body {
       margin: 0;
     }
-
+    .hint {
+      font-size: 14px;
+      line-height: 3em;
+      color: gray;
+    }
     #url,
     #url2,
     #accessToken {
@@ -19,6 +23,14 @@
 
     .btn-container {
       margin: 10px;
+    }
+    .normal {
+      color: green;
+      margin: 5px;
+    }
+    .error {
+      color: red;
+      margin: 5px;
     }
   </style>
 </head>
@@ -29,14 +41,20 @@
   <script src="../ezuikit.js"></script>
   <!-- <script src="../js/jsPlugin-1.2.0.js"></script> -->
   <script src="../js/jquery.min.js"></script>
+  <div class="hint">demo页面仅为代码示例无法直接运行，需要部署到服务器上才可以播放。另外监控模式与多窗口模式对浏览器版本有要求：Chrome: 55+ Firefox: V55+。</div>
   <h2>预览，回放功能示例：</h2>
   <textarea id="url" placeholder="这里输入ezopen地址"></textarea>
   <textarea id="accessToken" placeholder="这里输入accessToken"></textarea>
   <div class="btn-container">
     <button id="init">初始化播放</button>
+    <button id="play">播放</button>
     <button id="stop">结束</button>
     <button id="getOSDTime">获取OSD时间</button>
     <button id="openSound">打开声音（默认已经开启）</button>
+    <button id="capturePicture">视频截图</button>
+    <button id="startSave">开始录像</button>
+    <button id="stopSave">停止录像</button>
+
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
   </div>
@@ -44,7 +62,11 @@
     $("#init").click(function () {
       function handleError(e){
           console.log('捕获到错误',e)
+         // log(JSON.stringify(e),'error');
           //alert(e)
+      }
+      function handleSuccess(){
+        console.log("播放成功回调函数，此处可执行播放成功后续动作");
       }
       var url = $('#url').val().trim();
       var accessToken = $('#accessToken').val().trim();
@@ -53,15 +75,17 @@
         autoplay: true,
         url: url,
         accessToken: accessToken,
-        decoderPath: '../',
+        decoderPath: '',
         width: 600,
         height: 400,
         handleError: handleError,
+        handleSuccess: handleSuccess,
       });
       // 这里是打印日志，本例抛出到播放页面
       decoder.on('log', log);
-      function log(str) {
+      function log(str,className) {
         var div = document.createElement('DIV');
+        div.className=className || 'normal';
         div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
         document.body.appendChild(div);
       }
@@ -91,6 +115,18 @@
       })
       $("#openSound").click(function () {
         decoder.openSound();
+      })
+      $("#capturePicture").click(function () {
+        decoder.capturePicture(0,'default');
+      })
+      $("#startSave").click(function () {
+        decoder.startSave(0,'default');
+      })
+      $("#stopSave").click(function () {
+        decoder.stopSave(0);
+      })
+      $("#play").click(function () {
+        decoder.play();
       })
     })
   </script>
