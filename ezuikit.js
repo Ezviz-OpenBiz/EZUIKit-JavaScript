@@ -440,8 +440,8 @@
       }
       var urlList = playParams.url.split(',')
       var promiseTaskList = [];
-      var promiseTaskFun = (ezopenURL) => {
-        return new Promise((resolve, reject) => getRealUrlPromise(resolve, reject, ezopenURL))
+      var promiseTaskFun = function(ezopenURL) {
+        return new Promise(function(resolve, reject){return getRealUrlPromise(resolve, reject, ezopenURL)})
       };
       urlList.map(function (item, index) {
         promiseTaskList.push(promiseTaskFun(item));
@@ -925,7 +925,7 @@
             // 默认开启第一路声音
             if (index === 0) {
               _this.log("默认开启第1路声音");
-              setTimeout(() => {
+              setTimeout(function(){
                 _this.jSPlugin.JS_OpenSound(0);
               }, 100)
             }
@@ -969,7 +969,7 @@
             // 默认开启第一路声音
             if (index === 0) {
               _this.log("默认开启第一路声音");
-              setTimeout(() => {
+              setTimeout(function(){
                 _this.jSPlugin.JS_OpenSound(0);
               }, 100)
             }
