@@ -52,8 +52,6 @@
     <button id="getOSDTime">获取OSD时间</button>
     <button id="openSound">打开声音（默认已经开启）</button>
     <button id="capturePicture">视频截图</button>
-    <button id="startSave">开始录像</button>
-    <button id="stopSave">停止录像</button>
 
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
@@ -117,13 +115,7 @@
         decoder.openSound();
       })
       $("#capturePicture").click(function () {
-        decoder.capturePicture(0,'default');
-      })
-      $("#startSave").click(function () {
-        decoder.startSave(0,'default');
-      })
-      $("#stopSave").click(function () {
-        decoder.stopSave(0);
+        decoder.capturePicture(0,'picName');
       })
       $("#play").click(function () {
         decoder.play();
