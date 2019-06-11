@@ -166,10 +166,10 @@
     this.handlers = {};
 
     // 修订 - 支持JS Decoder 允许非字符串配置项
-    if (typeof playParams === 'object') {
+    if (typeof playParams === 'object' && playParams.decoderPath) {
       /* 校验播放器配置参数合法性 */
       // 解码器路径
-      if (typeof playParams.decoderPath === 'undefined') {
+      if (typeof playParams.decoderPath !== 'string' || typeof playParams.decoderPath === 'undefined') {
         throw new Error('EZUIDecoder requires the path of decoder');
         return;
       }
@@ -348,7 +348,7 @@
       apiDomain = playParams.env.domain;
     }
     /** jsDecoder 获取真实地址 -- 开始 */
-    if (playParams && typeof playParams === 'object') {
+    if (playParams && playParams.decoderPath) {
       var getRealUrlPromise = function (resolve, reject, ezopenURL) {
         var realUrl = '';
         if (!/^ezopen:\/\//.test(ezopenURL)) { // JSDecoder ws协议播放
