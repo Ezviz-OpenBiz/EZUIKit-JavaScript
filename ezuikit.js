@@ -1163,6 +1163,7 @@
   // 开始录像
   EZUIPlayer.prototype.startSave = function (iWind, fileName) {
     if (!!this.jSPlugin) {
+      this.log("开始录制录像");
       this.jSPlugin.JS_StartSave(iWind, fileName)
     } else {
       throw new Error("Method  not support");
@@ -1171,7 +1172,8 @@
   // 结束录像
   EZUIPlayer.prototype.stopSave = function (iWind) {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_StopSave(iWind)
+      this.jSPlugin.JS_StopSave(iWind);
+      this.log("结束录制录像");
     } else {
       throw new Error("Method  not support");
     }

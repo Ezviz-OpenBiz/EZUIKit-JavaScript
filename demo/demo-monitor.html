@@ -52,6 +52,9 @@
     <button id="getOSDTime">获取OSD时间</button>
     <button id="openSound">打开声音（默认已经开启）</button>
     <button id="capturePicture">视频截图</button>
+    <button id="startSave">开始录像</button>
+    <button id="stopSave">停止录像</button>
+    <span>录制功能不支持加密视频，且录制的文件需要<a href="https://service.ys7.com/downloadInfoSite/admin" target="_blank">下载海康播放器播放</a></span>
 
   </div>
   <div id="playWind" style="width: 600px; height: 400px;">
@@ -115,7 +118,13 @@
         decoder.openSound();
       })
       $("#capturePicture").click(function () {
-        decoder.capturePicture(0,'picName');
+        decoder.capturePicture(0,'default');
+      })
+      $("#startSave").click(function () {
+        decoder.startSave(0, (new Date().getTime() + 'video'));
+      })
+      $("#stopSave").click(function () {
+        decoder.stopSave(0);
       })
       $("#play").click(function () {
         decoder.play();
