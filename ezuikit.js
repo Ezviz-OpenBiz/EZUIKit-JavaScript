@@ -1110,7 +1110,7 @@
             console.log("stop failed");
           });
           // 额外销毁worker
-          //this.jSPlugin.JS_DestroyWorker();
+          this.jSPlugin.JS_DestroyWorker();
           removeChild(index);
         }
       } else {
