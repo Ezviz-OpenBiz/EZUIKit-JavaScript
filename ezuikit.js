@@ -926,7 +926,8 @@
             if (index === 0) {
               _this.log("默认开启第1路声音");
               setTimeout(function(){
-                _this.jSPlugin.JS_OpenSound(0);
+                var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
+                openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
               }, 100)
             }
             // 播放成功回调
@@ -970,7 +971,8 @@
             if (index === 0) {
               _this.log("默认开启第一路声音");
               setTimeout(function(){
-                _this.jSPlugin.JS_OpenSound(0);
+                var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
+                openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
               }, 100)
             }
             if (params && params.handleSuccess) {
@@ -1147,7 +1149,17 @@
   // 开启声音
   EZUIPlayer.prototype.openSound = function (iWind) {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_OpenSound(iWind || 0)
+      var openSoundRT = this.jSPlugin.JS_OpenSound(iWind || 0);
+      openSoundRT === 0 ? this.log('开启声音成功') : this.log('开启声音失败','error');
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 关闭声音
+  EZUIPlayer.prototype.closeSound = function (iWind) {
+    if (!!this.jSPlugin) {
+      var closeSoundRT = this.jSPlugin.JS_CloseSound(iWind || 0);
+      closeSoundRT === 0 ? this.log('关闭声音成功') : this.log('关闭声音失败','error');
     } else {
       throw new Error("Method  not support");
     }
