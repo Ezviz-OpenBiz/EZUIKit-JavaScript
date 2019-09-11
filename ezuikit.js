@@ -82,9 +82,9 @@
   function dclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
     var logObj = {
-      Ver: 'v.2.4.5',
+      Ver: 'v.2.6.0',
       PlatAddr: domain,
-      ExterVer: 'Ez.2.4.5',
+      ExterVer: 'Ez.2.6.0',
       CltType: 102,
       StartTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),  // 每个日志包含当前的时间
       OS: navigator.platform
@@ -1004,6 +1004,7 @@
         /* decoder 属性配置 */
         _this.jSPlugin = new JSPlugin({
           szId: playParams.id,
+          iMode: 1,
           iType: 1,
           iWidth: playParams.width || 600,
           iHeight: playParams.height || 400,
@@ -1176,7 +1177,7 @@
   EZUIPlayer.prototype.startSave = function (iWind, fileName) {
     if (!!this.jSPlugin) {
       this.log("开始录制录像");
-      this.jSPlugin.JS_StartSave(iWind, fileName)
+      this.jSPlugin.JS_StartSave(iWind, fileName,{iPackage: 1})
     } else {
       throw new Error("Method  not support");
     }
