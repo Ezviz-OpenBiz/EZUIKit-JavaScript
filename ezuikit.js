@@ -73,11 +73,15 @@
   var isSupportHls = false;
   // 是否使用flash
   var useFlash = false;
-
+  // 初始化播放时间
+  var playStartTime = new Date().getTime();
   // 本地信息上报
   var LOCALINFO = 'open_netstream_localinfo';
   // 预览主表上报
   var PLAY_MAIN = 'open_netstream_play_main';
+  // 日志上报（轻应用独立上报）
+  var LOCALINFO_EZUIKIT = 'open_ezuikit_localinfo';
+  var PERFORMANCE_EZUIKIT = 'open_ezuikit_performance';
 
   function dclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
@@ -85,9 +89,31 @@
       Ver: 'v.2.6.0',
       PlatAddr: domain,
       ExterVer: 'Ez.2.6.0',
+      OpId: uuid(),
       CltType: 102,
       StartTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),  // 每个日志包含当前的时间
       OS: navigator.platform
+    }
+    for (var i in obj) {
+      logObj[i] = obj[i];
+    }
+
+    var tempArray = [];
+    for (var j in logObj) {
+      tempArray.push(j + '=' + logObj[j]);
+    }
+    var params = '?' + tempArray.join('&');
+    // 上报一次本地统计信息
+    var img = new Image();
+    img.src = logDomain + params;
+  }
+  // 日志上报-2019-09-10
+  function ezuikitDclog(obj) {
+    var domain = window.location.protocol + '//' + window.location.host;
+    var logObj = {
+      version: 'v.2.6.0',
+      plate_addr: domain,
+      st: new Date().getTime(),  // 每个日志包含当前的时间
     }
     for (var i in obj) {
       logObj[i] = obj[i];
@@ -107,6 +133,12 @@
   dclog({
     systemName: LOCALINFO
   });
+  // 上报一次本地信息-新
+  ezuikitDclog({
+    systemName: LOCALINFO_EZUIKIT,
+    os: navigator.platform,
+    browser: JSON.stringify(getBrowserInfo())
+  })
 
   var RTMP_REG = /^rtmp/;
   var HLS_REG = /\.m3u8/;
@@ -145,16 +177,17 @@
     }
     http_request.send(data);
   };
-  //获取url参数
-  function getQueryString(name, url) {
-    var r = new RegExp("(\\?|#|&)" + name + "=(.*?)(#|&|$)");
-    var m = (url || location.href).match(r);
-    return decodeURIComponent(m ? m[2] : '');
-  }
-  /**判断是否为promise对象 */
+  /** 获取url参数 */
+  function getQueryString(name, url) {var r = new RegExp("(\\?|#|&)" + name + "=(.*?)(#|&|$)");var m = (url || location.href).match(r);return decodeURIComponent(m ? m[2] : '');}
+  /** 判断是否为promise对象 */
   function isPromise(obj) { return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'; }
-
-
+  /** 生成uuid */
+  function uuid() {var s = [];var hexDigits = "0123456789abcdef";for (var i = 0; i < 36; i++) {s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1)};s[14] = "4";s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);s[8] = s[13] = s[18] = s[23] = "-";var uuid = s.join("");return uuid;}
+    /**获取浏览器名称，版本 */
+  function getBrowserInfo() {var Sys = {}; var ua = navigator.userAgent.toLowerCase();var re = /(msie|firefox|chrome|opera|version).*?([\d.]+)/;var m = ua.match(re);try{Sys.browser = m[1].replace(/version/, "'safari"); Sys.ver = m[2];}catch(e){console.log("getBrowserInfo fail.")}return Sys;}
+  /** 是否为JSON格式字符串 */
+  function isJSON(str) { if (typeof str == 'string') {try {var obj=JSON.parse(str);if(typeof obj == 'object' && obj ){return true;}else{return false;}} catch(e) {console.log('error：'+str+'!!!'+e);return false;}}console.log('It is not a string!')}
+  
   var EZUIPlayer = function (playParams) {
     if (!isModernBrowser) {
       throw new Error('不支持ie8等低版本浏览器');
@@ -182,6 +215,84 @@
         throw new Error('EZUIDecoder requires parameter url');
         return;
       }
+      // 状态提示
+      this.loadingStart = function(){
+        var oS=document.createElement('style');
+        document.getElementsByTagName("head")[0].appendChild(oS);
+        oS.innerHTML= '@keyframes antRotate {to {transform: rotate(400deg);transform-origin:50% 50%;}} .loading {display: inline-block;z-index: 1000;-webkit-animation: antRotate 1s infinite linear;animation: antRotate 1s infinite linear;}';
+        /**DOM 操作方法 */
+        function insertAfter( newELement, targetElement ){
+          var parent = targetElement.parentNode;
+          if( parent.lastChild == targetElement ){
+              parent.appendChild( newElment );
+          }else{
+              parent.insertBefore( newELement, targetElement.nextSibling );
+          }
+        } 
+        if(playParams && playParams.id){
+          var domId = playParams.id;
+          var domElement = document.getElementById(domId);
+          var windowWidth = domElement.offsetWidth;
+          var windowHeight = domElement.offsetHeight || playParams.height || 400;
+          var offsetTop = domElement.offsetTop;
+          var offsetLeft = domElement.offsetLeft;
+          console.log("windowHeight",windowHeight)
+          
+          var loadingContainerDOM = document.createElement('div');
+          loadingContainerDOM.setAttribute('id','loading-id-0');
+          var style = 'position:absolute;outline:none;'
+          style += 'width:' + windowWidth + 'px;'
+          style += 'height:' + windowHeight + 'px;'
+          style += 'top:' + offsetTop + 'px;'
+          style += 'left:' + offsetLeft + 'px;'
+
+          loadingContainerDOM.setAttribute('style',style);
+          var loadingContainer = document.getElementById("loading-id-0");
+          loadingContainerDOM.style.height = windowHeight;
+
+          loadingContainerDOM.setAttribute('class','loading-container');
+          // loadingContainerDOM.innerHTML= loading;
+
+          
+          insertAfter( loadingContainerDOM,domElement );
+
+          var splitBasis = playParams.splitBasis || 1;
+          for(var i=0; i< splitBasis * splitBasis; i++){
+            console.log("i",i);
+            var loadingContainer = document.createElement('div');
+            var loadingStatusDOM = document.createElement('div');
+            loadingContainer.setAttribute('class','loading-item');
+            loadingContainer.setAttribute('id','loading-item-' + i);
+            loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+windowWidth+'px;height:'+windowHeight+'px;outline:none;vertical-align: top;');
+            var loadingDOM = document.createElement('div');
+            loadingStatusDOM.innerHTML="";
+            loadingStatusDOM.style.color="#fff";
+            loadingDOM.setAttribute('class','loading');
+            var loading = '<svg t="1567069979438" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2399" width="32" height="32"><path d="M538.5344 266.4448a133.12 133.12 0 1 1 133.12-133.12 133.4272 133.4272 0 0 1-133.12 133.12zM255.0144 372.1984a121.6768 121.6768 0 1 1 121.6768-121.6768 121.856 121.856 0 0 1-121.6768 121.6768zM134.72 647.424a107.3664 107.3664 0 1 1 107.3664-107.264A107.52 107.52 0 0 1 134.72 647.424z m120.32 272.4608a90.9824 90.9824 0 1 1 90.9824-90.9824A91.1616 91.1616 0 0 1 255.04 919.8848zM538.5344 1024a79.36 79.36 0 1 1 79.36-79.36 79.36 79.36 0 0 1-79.36 79.36z m287.6928-134.144a64.1792 64.1792 0 1 1 64.1792-64.1792 64.3584 64.3584 0 0 1-64.1792 64.1792z m117.76-296.704a52.6336 52.6336 0 1 1 52.6592-52.6336 52.608 52.608 0 0 1-52.6336 52.6336z m-158.72-338.7136a40.96 40.96 0 1 1 12.0064 28.8512 40.5248 40.5248 0 0 1-12.0064-28.8512z" fill="#ffffff" p-id="2400"></path></svg>';
+            if(playParams.loading && playParams.loading.svg){
+              loading = playParams.loading.svg;
+            }
+            loadingDOM.innerHTML = loading;
+            loadingContainer.appendChild(loadingDOM);
+            // loadingContainer.appendChild(loading);
+            loadingContainer.appendChild(loadingStatusDOM);
+            loadingContainerDOM.appendChild(loadingContainer)
+          }
+        }
+
+      }
+      this.loadingSet = function(index,opt){
+        var textElement = document.getElementById('loading-id-0').childNodes[index].childNodes[1];
+        textElement.innerHTML = opt.text;
+        if(opt.color){
+          textElement.style.color = opt.color;
+        }
+      }
+      this.loadingEnd = function(index){
+        this.log("结束显示loading",index);
+        var loadingContainerDOM = document.getElementById('loading-item-' + index);
+        loadingContainerDOM.innerHTML="";
+      }
       // 将播放地址配置在实例 opt 属性中
       this.opt.sources.push(playParams.url);
       // JSDecoder  只有一个播放地址
@@ -202,14 +313,27 @@
       this.jSPlugin = {};
       var _this = this;
       /** 根据播放参数获取真实播放地址 */
+      this.loadingStart();
+      playStartTime = new Date().getTime();
+      // 音频自动播放
+      var audioId = 0
+      if(playParams.audioId){
+        audioId = playParams.audioId;
+      }else if(playParams.audioId === -1) {
+        audioId = undefined;
+      }
+
       var getRealUrl = this.getRealUrl(playParams);
       /**是否自动播放 */
       if (isPromise(getRealUrl)) {
         getRealUrl.then(function (data) {
           var initDecoder = _this.initDecoder(playParams);
+          // 初始化播放器
+          _this.loadingSet(0,{text:'初始化播放器...'});
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
             initDecoder.then(function (data) {
-              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess });
+              _this.loadingSet(0,{text:'初始化完成'});
+              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess },audioId);
             })
           }
         })
@@ -301,6 +425,7 @@
         PlTp: 1,  // 1 直播 2 回放
         Via: 2,  // 2 服务端取流
         ErrCd: 0,
+        OpId: uuid(),
         Cost: (new Date()).getTime() - this.initTime  // 毫秒数
       });
     });
@@ -310,7 +435,8 @@
         systemName: PLAY_MAIN,
         playurl: this.opt.currentSource,
         cost: -1,
-        ErrCd: -1
+        ErrCd: -1,
+        OpId: uuid(),
       });
     });
   };
@@ -349,23 +475,45 @@
     }
     /** jsDecoder 获取真实地址 -- 开始 */
     if (playParams && playParams.hasOwnProperty('decoderPath')) {
+      // api 获取真实地址开始时间
+      var getRealUrlDurationST = new Date().getTime();
       var getRealUrlPromise = function (resolve, reject, ezopenURL) {
         var realUrl = '';
         if (!/^ezopen:\/\//.test(ezopenURL)) { // JSDecoder ws协议播放
           resolve(ezopenURL);
         } else {
+          var getPlayTokenST = new Date().getTime();
           var nodeUrl = apiDomain + "/jssdk/ezopen/getStreamToken?accessToken=" + playParams.accessToken + '&num=10&type=' + (playParams.url.indexOf('live') !== -1 ? 'live' : 'playback');
           var nodeSuccess = function (data) {
             if (data.retcode === 0) {
               realUrl = realUrl + data.data.params + '&ssn=' + data.data.tokens[0];
               // _this.opt.currentSource = realUrl;
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 3,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - getPlayTokenST,
+                rt: 200,
+              })
               resolve(realUrl);
             } else {
               // 将错误信息捕获到用户自定义错误回调中
               if (playParams && playParams.handleError) {
                 playParams.handleError(data);
               }
-              reject(JSON.stringify(data));
+              // 错误信息显示在状态中
+              if(data.msg){
+                _this.loadingSet(0,{text:data.msg,color:'red'});
+              }
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 3,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - getPlayTokenST,
+                rt: data.retcode,
+                msg: data.msg,
+              })
+              resolve(JSON.stringify(data));
               throw new Error('获取播放token失败');
             }
           }
@@ -374,7 +522,15 @@
             if (playParams && playParams.handleError) {
               playParams.handleError(error);
             }
-            reject(JSON.stringify(error))
+            ezuikitDclog({
+              systemName: PERFORMANCE_EZUIKIT,
+              bn: 3,
+              browser: JSON.stringify(getBrowserInfo()),
+              duration: new Date().getTime() - getPlayTokenST,
+              rt: 500,
+              msg: '获取取流token网络错误',
+            })
+            resolve(JSON.stringify(error))
             throw new Error('获取播放token失败', 'error');
           }
           // 向API请求真实地址
@@ -403,12 +559,33 @@
                 }
               }
               request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+              getPlayTokenST = new Date().getTime();
+              console.log("2.getPlayTokenST",getPlayTokenST)
+              // 执行一次API服务请求上报
+              var getRealUrlDurationET = new Date().getTime();
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 0,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: getRealUrlDurationET - getRealUrlDurationST,
+                rt: 200,
+              })
             } else {
               // 将错误信息捕获到用户自定义错误回调中
               if (playParams && playParams.handleError) {
                 playParams.handleError(data);
               }
-              reject(JSON.stringify(data), 'error')
+               // 执行一次API服务请求服务错误上报
+               var getRealUrlDurationET = new Date().getTime();
+               ezuikitDclog({
+                 systemName: PERFORMANCE_EZUIKIT,
+                 bn: 0,
+                 browser: JSON.stringify(getBrowserInfo()),
+                 duration: getRealUrlDurationET - getRealUrlDurationST,
+                 rt: data.code || 500,
+                 msg: data.msg || '未知服务错误'
+               })
+              resolve(JSON.stringify(data), 'error')
               //throw new Error('获取播放设备信息失败');
             }
             /**参数容错处理  end*/
@@ -418,7 +595,16 @@
             if (playParams && playParams.handleError) {
               playParams.handleError(error);
             }
-            reject(JSON.stringify(error))
+            var getRealUrlDurationET = new Date().getTime();
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 0,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: getRealUrlDurationET - getRealUrlDurationST,
+                rt: 500,
+                msg: data.msg || '网络错误'
+              })
+            resolve(JSON.stringify(error))
             //throw new Error('获取播放设备信息失败');
           }
           var isHttp = 'false';
@@ -444,6 +630,7 @@
         return new Promise(function(resolve, reject){return getRealUrlPromise(resolve, reject, ezopenURL)})
       };
       urlList.map(function (item, index) {
+        _this.loadingSet(index,{text:'获取设备播放地址'})
         promiseTaskList.push(promiseTaskFun(item));
       });
       var getRealUrlPromiseObj = Promise.all(promiseTaskList)
@@ -451,6 +638,9 @@
           // 获取真实地址成功后，赋值到opt属性中
           _this.opt.sources = result;
           _this.opt.currentSource = result[0];
+          result.forEach(function(item,index){
+            _this.loadingSet(index,{text:'获取播放地址成功'})
+          })
         })
         .catch(function (err) {
           _this.log("获取真实地址错误" + JSON.stringify(err), 'error')
@@ -886,7 +1076,7 @@
   };
 
 
-  EZUIPlayer.prototype.play = function (params) {
+  EZUIPlayer.prototype.play = function (params, audioId) {
     //var index = params.index;
    
     if (!!window['CKobject']) {
@@ -912,18 +1102,39 @@
       }
       if (!params || typeof params.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
+          if(getQueryString('dev',item)){
           _this.log("开始播放, 第" + (index+1)+ '路，' + '地址：' + item);
+          _this.loadingSet(index,{text:'准备播放...',color:'#fff'})
           // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
           var validateCode = getQueryString('checkCode', item);
           if (validateCode) {
             _this.log('设置秘钥，视频路数：' + (index + 1) + '验证码：' + validateCode)
             _this.jSPlugin.JS_SetSecretKey(index, validateCode);
           }
+          var playST = new Date().getTime();
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
             _this.log('播放成功，当前播放第' + (index + 1) + '路');
+            _this.loadingSet(index,{text:'播放成功...'});
+            //单次播放日志上报
+            ezuikitDclog({
+              systemName: PERFORMANCE_EZUIKIT,
+              bn: 2,
+              browser: JSON.stringify(getBrowserInfo()),
+              duration: new Date().getTime() - playST,
+              rt: 200,
+            })
+            // 播放成功
+            ezuikitDclog({
+              systemName: PERFORMANCE_EZUIKIT,
+              bn: 99,
+              browser: JSON.stringify(getBrowserInfo()),
+              duration: new Date().getTime() - playStartTime,
+              rt: 200,
+            })
+            _this.loadingEnd(index);
             // 默认开启声音
             // 默认开启第一路声音
-            if (index === 0) {
+            if (typeof(audioId) !== "undefined" && audioId === index) {
               _this.log("默认开启第1路声音");
               setTimeout(function(){
                 var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
@@ -943,17 +1154,30 @@
               PlTp: 1,  // 1 直播 2 回放
               Via: 2,  // 2 服务端取流
               ErrCd: 0,
+              OpId: uuid(),
               Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
               Serial: getQueryString('dev',item),
               Channel: getQueryString('chn',item),
             });
           }, function (err) {
             _this.log('播放失败' + JSON.stringify(err), 'error');
+            var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode });
+            ezuikitDclog({
+              systemName: PERFORMANCE_EZUIKIT,
+              bn: 2,
+              browser: JSON.stringify(getBrowserInfo()),
+              duration: new Date().getTime() - playStartTime,
+              rt: err.oError ? err.oError.errorCode : 500,
+              msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+            })
+            var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
+            _this.loadingSet(index,{text:msg,color:'red'});
             dclog({
               systemName: PLAY_MAIN,
               playurl: encodeURIComponent(item),
               cost: -1,
               ErrCd: -1,
+              OpId: uuid(),
               Serial: getQueryString('dev',item),
               Channel: getQueryString('chn',item),
             });
@@ -962,29 +1186,12 @@
               params.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
             }
           })
-        })
-      } else {
-        params.index.forEach(function (item, index) {
-          _this.jSPlugin.JS_Play(getPlayParams(_this.opt.sources[item]).websocketConnectUrl, { playURL: getPlayParams(_this.opt.sources[item]).websocketStreamingParam }, item).then(function () {
-            _this.log('播放成功，当前播放第' + (index + 1) + '路')
-            // 默认开启第一路声音
-            if (index === 0) {
-              _this.log("默认开启第一路声音");
-              setTimeout(function(){
-                var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
-                openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
-              }, 100)
-            }
-            if (params && params.handleSuccess) {
-              params.handleSuccess();
-            }
-          }, function (err) {
-            _this.log('播放失败' + JSON.stringify(err), 'error');
-            if (params && params.handleError) {
-              var errInfo = err.oError;// 包装错误码
-              params.handleError(errInfo);
-            }
-          })
+        } else {
+          console.log("url不合法",item);
+          if(isJSON(item) && JSON.parse(item).msg){
+            _this.loadingSet(index,{text:JSON.parse(item).msg,color:'red'})
+          }
+        }
         })
       }
     }
@@ -994,6 +1201,7 @@
     this.opt.id = playParams.id;
     this.log("初始化解码器---开始");
     var _this = this;
+    var initDecoderDurationST = new Date().getTime();
     // DOM id
     function initDecoder(resolve, reject) {
       var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0_test.js';
@@ -1017,6 +1225,14 @@
           _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
         }
         _this.log("初始化解码器----完成");
+         // 执行一次初始化解码器服务请求上报
+         ezuikitDclog({
+          systemName: PERFORMANCE_EZUIKIT,
+          bn: 1,
+          browser: JSON.stringify(getBrowserInfo()),
+          duration: new Date().getTime() - initDecoderDurationST,
+          rt: 200,
+        })
         resolve('200 OK')
       });
       /** 
@@ -1156,6 +1372,14 @@
       throw new Error("Method  not support");
     }
   }
+    // 全屏
+  EZUIPlayer.prototype.fullScreen = function (value) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_FullScreenDisplay(value);
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
   // 关闭声音
   EZUIPlayer.prototype.closeSound = function (iWind) {
     if (!!this.jSPlugin) {
@@ -1191,6 +1415,13 @@
       throw new Error("Method  not support");
     }
   }
+  EZUIPlayer.prototype.reSize = function (width,height) {
+    if (!!this.jSPlugin) {
+      this.jSPlugin.JS_Resize(width,height);
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
   EZUIPlayer.prototype.pause = function () {
     this.opt.autoplay = false;
     if (!!window['CKobject']) {
@@ -1218,289 +1449,12 @@
 
 
   // iOS11手机HLS直播在m3u8响应时间过长后不继续请求的hack
-  function ios11Hack(video) {
-    var isloadeddata = false;
-    var isPlaying = false;
-    var stalledCount = 0;
-    video.addEventListener('loadeddata', function () {
-      isloadeddata = true;
-    }, false);
-    video.addEventListener('stalled', function () {
-      stalledCount++;
-      if (!isPlaying) {
-        if (stalledCount >= 2 && !isloadeddata) {
-          video.load();
-          video.play();
-          isloadeddata = false;
-          isPlaying = false;
-          stalledCount = 0;
-        }
-      }
-    }, false);
-    video.addEventListener('playing', function () {
-      isPlaying = true;
-    });
-  }
+  function ios11Hack(video) {var isloadeddata = false;var isPlaying = false;var stalledCount = 0;video.addEventListener('loadeddata', function () {isloadeddata = true;}, false);video.addEventListener('stalled', function () {stalledCount++;if (!isPlaying) {if (stalledCount >= 2 && !isloadeddata) {video.load();video.play();isloadeddata = false;isPlaying = false;stalledCount = 0;}}}, false);video.addEventListener('playing', function () {isPlaying = true;});}
+  function ltIE11() {var userAgent = navigator.userAgent; var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1;if (isIE) {return true;} else {return false;}}
 
-  function ltIE11() {
-    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
-    var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1; //判断是否IE<11浏览器
-    if (isIE) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  // 判断浏览器终端类型
-  function browserTerminal() {
-    var u = window.navigator.userAgent;
-    var browserClass = {
-      trident: u.indexOf('Trident') > -1, //IE内核
-      presto: u.indexOf('Presto') > -1, //opera内核
-      webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
-      gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') === -1, //火狐内核
-      mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
-      ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
-      android: u.indexOf('Android') > -1 || u.indexOf('Adr') > -1, //android终端
-      iPhone: u.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
-      iPad: u.indexOf('iPad') > -1, //是否iPad
-      webApp: u.indexOf('Safari') == -1, //是否web应该程序，没有头部与底部
-      weixin: u.indexOf('MicroMessenger') > -1, //是否微信
-      qq: u.match(/\sQQ/i) == " qq", //是否QQ
-      ie: u.indexOf('Trident') > -1 || u.indexOf('MSIE') > -1 || u.indexOf('compatible') > -1,
-    };
-    return browserClass;
-  }
-
-
-  //公共方法
-  var Util = {
-    //初始化
-    init: function () {
-      navigator.getUserMedia = navigator.getUserMedia ||
-        navigator.webkitGetUserMedia ||
-        navigator.mozGetUserMedia ||
-        navigator.msGetUserMedia;
-
-      window.AudioContext = window.AudioContext ||
-        window.webkitAudioContext;
-    },
-    //日志
-    log: function (str) {
-      console.log.apply(console, arguments);
-    }
-  };
-
-
-  var EZUITalk = function (bizParams) {
-    if (bizParams && typeof bizParams !== 'object') {
-      throw new Error("EZUITalk requires parameter it doesn't right");
-      return;
-    }
-    var audioId = bizParams.id;
-    var Token = bizParams.token;
-    var uuid = bizParams.uuid;
-    if (typeof audioId !== 'string' || typeof audioId === 'undefined') {
-      throw new Error('EZUITalk requires parameter audioId');
-      return;
-    }
-    this.audio = document.getElementById(audioId);
-    if (!this.audio) {
-      throw new Error('EZUITalk requires parameter audioElement');
-      return;
-    }
-    if (!Token) {
-      throw new Error('EZUITalk requires parameter accessToken');
-      return
-    }
-    if (!uuid) {
-      throw new Error('EZUITalk requires parameter uuid');
-      return;
-    }
-    Util.init();
-    if (!navigator.getUserMedia) {
-      throw new Error('当前浏览器不支持录音功能');
-      return;
-    }
-    var browserC = browserTerminal();
-    if (!browserC.mobile) {
-      throw new Error('对讲功能仅在手机中支持进行对讲');
-      return;
-    }
-
-    // 事件存储
-    this.handlers = {};
-    var _this = this;
-    this.BUFFER = [];
-    this.encoder = undefined;
-
-
-    this.isEnded = true;
-    this.LENGTH = 20;
-    this.audio.addEventListener('ended', function () {
-      _this.isEnded = true;
-    });
-
-    // 对讲的播放功能
-    this.audioPlay = function () {
-      if (this.isEnded) {
-        this.isEnded = false;
-        if (this.BUFFER.length > this.LENGTH) {
-          this.BUFFER = this.BUFFER.slice(0, this.LENGTH)
-        }
-        this.encoder = new WavAudioEncoder(16000, 1);
-        var buf = this.BUFFER.shift();
-        while (buf) {
-          this.encoder.encode(buf);
-          buf = this.BUFFER.shift();
-        }
-        this.audio.src = URL.createObjectURL(this.encoder.finish());
-      }
-    };
-
-    // 按钮触发对讲功能
-    this.start = function () {
-      this.wsUrl = 'wss://test2.ys7.com:20007/opentalk/' + uuid;
-      this.socket = new WebSocket(this.wsUrl);
-      this.talk();
-    };
-
-    this.talk = function () {
-      addJs(wav, function () {
-        _this.socket.onopen = function () {
-          _this.log('websocket已连接');
-          var sendData = {
-            'accessToken': Token,
-            'uuid': uuid,
-          };
-          var messageJson = JSON.stringify(sendData);
-          _this.socket.send(messageJson);
-          _this.log('websocket 发送文本数据');
-          _this.startRecord();
-        };
-        _this.socket.onclose = function () {
-          _this.log('websocket已关闭');
-        };
-        _this.socket.onerror = function (e) {
-          _this.log('websocket出错->' + JSON.stringify(e));
-        };
-        _this.socket.onmessage = function (e) {
-          _this.log('websocket 接收数据');
-          _this.BUFFER.push(e.data);
-          _this.audioPlay();
-        };
-
-        _this.audio.setAttribute('autoplay', true);
-        _this.audio.play();
-
-      });
-    };
-
-    // 对讲中的说话功能
-    this.startRecord = function () {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (stream) {
-          var context = new AudioContext(),
-            microphone = context.createMediaStreamSource(stream), //媒体流音频源
-            processor = context.createScriptProcessor(16384, 1, 1); //js音频处理器
-
-          _this.log('当前浏览器采样率为： ' + context.sampleRate);
-
-          processor.onaudioprocess = function (event) {
-            //监听音频录制过程
-            var array = event.inputBuffer.getChannelData(0);
-            // _this.log('监听声音录制');
-            realTimeWorker.postMessage({ cmd: 'encode', buf: array });
-          };
-
-          var realTimeWorker = new Worker('../js/worker.js'); //开启后台线程
-
-          realTimeWorker.onmessage = function (e) {
-            //主线程监听后台线程，实时通信
-            switch (e.data.cmd) {
-              case 'pcm':
-                _this.socket.send(e.data.buf);
-                console.log(e.data.buf);
-                _this.log('websocket 发送数据');
-                break;
-              default:
-                _this.log('未知信息：' + e.data);
-            }
-          };
-
-          //开始对讲
-          if (processor && microphone) {
-            microphone.connect(processor);
-            processor.connect(context.destination);
-          }
-          _this.log('开始对讲');
-
-          //结束对讲
-          _this.stop = function () {
-            if (processor && microphone) {
-              microphone.disconnect();
-              processor.disconnect();
-            }
-            _this.socket.close();
-            _this.log('结束对讲');
-          };
-
-        }).catch(function (error) {
-          var msg;
-          switch (error.code || error.name) {
-            case 'PermissionDeniedError':
-            case 'PERMISSION_DENIED':
-            case 'NotAllowedError':
-              msg = '用户拒绝访问麦克风';
-              break;
-            case 'NOT_SUPPORTED_ERROR':
-            case 'NotSupportedError':
-              msg = '浏览器不支持麦克风';
-              break;
-            case 'MANDATORY_UNSATISFIED_ERROR':
-            case 'MandatoryUnsatisfiedError':
-              msg = '找不到麦克风设备';
-              break;
-            default:
-              msg = '无法打开麦克风，异常信息:' + (error.code || error.name);
-              break;
-          }
-          _this.log(msg);
-          alert(msg);
-        })
-    }
-  };
-
-  // 事件监听
-  EZUITalk.prototype.on = function (eventName, callback) {
-    if (typeof eventName !== 'string' || typeof callback !== 'function') {
-      return;
-    }
-    if (typeof this.handlers[eventName] === 'undefined') {
-      this.handlers[eventName] = [];
-    }
-    this.handlers[eventName].push(callback);
-  };
-
-  // 事件触发
-  EZUITalk.prototype.emit = function () {
-    if (this.handlers[arguments[0]] instanceof Array) {
-      var handlers = this.handlers[arguments[0]];
-      var l = handlers.length;
-      for (var i = 0; i < l; i++) {
-        handlers[i].apply(this, Array.prototype.slice.call(arguments, 1));
-      }
-    }
-  };
-
-  EZUITalk.prototype.log = function (msg) {
-    this.emit('log', msg);
-  };
 
   var EZUIKit = {
     'EZUIPlayer': EZUIPlayer,
-    'EZUITalk': EZUITalk,
   };
   // 兼容1.4 以下旧版本
   // var EZUIPlayer = EZuikit.EZUIPlayer;
