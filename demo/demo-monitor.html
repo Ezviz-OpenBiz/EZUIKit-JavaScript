@@ -50,6 +50,7 @@
     <button id="stop">结束</button>
     <button id="getOSDTime">获取OSD时间</button>
     <button id="openSound">打开声音（默认已经开启）</button>
+    <button id="closeSound">关闭声音</button>
     <button id="capturePicture">视频截图</button>
     <button id="startSave">开始录像</button>
     <button id="stopSave">停止录像</button>
@@ -115,6 +116,9 @@
       })
       $("#openSound").click(function () {
         decoder.openSound();
+      })
+      $("#closeSound").click(function () {
+        decoder.closeSound();
       })
       $("#capturePicture").click(function () {
         decoder.capturePicture(0,'default');
