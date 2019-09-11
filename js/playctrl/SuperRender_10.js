@@ -1,1 +1,337 @@
-"use strict";var vertexYUVShader=["attribute vec4 vertexPos;","attribute vec2 texturePos;","varying vec2 textureCoord;","void main()","{","gl_Position = vertexPos;","textureCoord = texturePos;","}"].join("\n");var fragmentYUVShader=["precision highp float;","varying highp vec2 textureCoord;","uniform sampler2D ySampler;","uniform sampler2D uSampler;","uniform sampler2D vSampler;","const mat4 YUV2RGB = mat4","(","1.1643828125, 0, 1.59602734375, -.87078515625,","1.1643828125, -.39176171875, -.81296875, .52959375,","1.1643828125, 2.017234375, 0, -1.081390625,","0, 0, 0, 1",");","void main(void) {","highp float y = texture2D(ySampler,  textureCoord).r;","highp float u = texture2D(uSampler,  textureCoord).r;","highp float v = texture2D(vSampler,  textureCoord).r;","gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;","}"].join("\n");(function(e,t){e.SuperRender=t()})(this,function(){function e(e){this.canvasElement=document.getElementById(e);this.initContextGL();if(this.contextGL){this.YUVProgram=this.initProgram(vertexYUVShader,fragmentYUVShader);this.initBuffers();this.initTextures()}}e.prototype.initContextGL=function(){var e=this.canvasElement;var t=null;try{t=e.getContext("webgl")||e.getContext("experimental-webgl")}catch(e){t=null}if(!t||typeof t.getParameter!=="function"){t=null}this.contextGL=t;console.log("WebGL1.0")};e.prototype.initProgram=function(e,t){var r=this.contextGL;var a=r.createShader(r.VERTEX_SHADER);r.shaderSource(a,e);r.compileShader(a);if(!r.getShaderParameter(a,r.COMPILE_STATUS)){console.log("Vertex shader failed to compile: "+r.getShaderInfoLog(a))}var i=r.createShader(r.FRAGMENT_SHADER);r.shaderSource(i,t);r.compileShader(i);if(!r.getShaderParameter(i,r.COMPILE_STATUS)){console.log("Fragment shader failed to compile: "+r.getShaderInfoLog(i))}var o=r.createProgram();r.attachShader(o,a);r.attachShader(o,i);r.linkProgram(o);if(!r.getProgramParameter(o,r.LINK_STATUS)){console.log("Program failed to compile: "+r.getProgramInfoLog(o))}r.deleteShader(a);r.deleteShader(i);return o};e.prototype.initBuffers=function(){var e=this.contextGL;var t=e.createBuffer();e.bindBuffer(e.ARRAY_BUFFER,t);e.bufferData(e.ARRAY_BUFFER,new Float32Array([1,1,-1,1,1,-1,-1,-1]),e.STATIC_DRAW);e.bindBuffer(e.ARRAY_BUFFER,null);var r=e.createBuffer();e.bindBuffer(e.ARRAY_BUFFER,r);e.bufferData(e.ARRAY_BUFFER,new Float32Array([1,0,0,0,1,1,0,1]),e.DYNAMIC_DRAW);e.bindBuffer(e.ARRAY_BUFFER,null);this.vertexPosBuffer=t;this.texturePosBuffer=r};e.prototype.initTextures=function(){var e=this.contextGL;var t=this.YUVProgram;e.useProgram(t);var r=this.initTexture();var a=e.getUniformLocation(t,"ySampler");e.uniform1i(a,0);this.yTextureRef=r;var i=this.initTexture();var o=e.getUniformLocation(t,"uSampler");e.uniform1i(o,1);this.uTextureRef=i;var n=this.initTexture();var u=e.getUniformLocation(t,"vSampler");e.uniform1i(u,2);this.vTextureRef=n;e.useProgram(null)};e.prototype.initTexture=function(){var e=this.contextGL;var t=e.createTexture();e.bindTexture(e.TEXTURE_2D,t);e.texParameteri(e.TEXTURE_2D,e.TEXTURE_MAG_FILTER,e.LINEAR);e.texParameteri(e.TEXTURE_2D,e.TEXTURE_MIN_FILTER,e.LINEAR);e.texParameteri(e.TEXTURE_2D,e.TEXTURE_WRAP_S,e.CLAMP_TO_EDGE);e.texParameteri(e.TEXTURE_2D,e.TEXTURE_WRAP_T,e.CLAMP_TO_EDGE);e.bindTexture(e.TEXTURE_2D,null);return t};e.prototype.SR_DisplayFrameData=function(e,t,r){if(e<=0||t<=0){return}var a=this.contextGL;if(null==r){a.clearColor(0,0,0,0);a.clear(a.COLOR_BUFFER_BIT|a.DEPTH_BUFFER_BIT);return}var i=this.canvasElement;this.nWindowWidth=i.width;this.nWindowHeight=i.height;var o=this.nWindowWidth;var n=this.nWindowHeight;a.clearColor(.8,.8,1,1);a.clear(a.COLOR_BUFFER_BIT|a.DEPTH_BUFFER_BIT);a.viewport(0,0,o,n);this.updateFrameData(e,t,r);var u=this.YUVProgram;a.useProgram(u);var f=this.vertexPosBuffer;a.bindBuffer(a.ARRAY_BUFFER,f);var s=a.getAttribLocation(u,"vertexPos");a.enableVertexAttribArray(s);a.vertexAttribPointer(s,2,a.FLOAT,false,0,0);a.bindBuffer(a.ARRAY_BUFFER,null);var l=this.texturePosBuffer;a.bindBuffer(a.ARRAY_BUFFER,l);var R=a.getAttribLocation(u,"texturePos");a.enableVertexAttribArray(R);a.vertexAttribPointer(R,2,a.FLOAT,false,0,0);a.bindBuffer(a.ARRAY_BUFFER,null);a.drawArrays(a.TRIANGLE_STRIP,0,4);a.disableVertexAttribArray(s);a.disableVertexAttribArray(R);a.useProgram(null)};e.prototype.updateFrameData=function(e,t,r){var a=this.contextGL;var i=this.yTextureRef;var o=this.uTextureRef;var n=this.vTextureRef;var u=r;var f=e*t;var s=u.subarray(0,f);a.activeTexture(a.TEXTURE0);a.bindTexture(a.TEXTURE_2D,i);a.texImage2D(a.TEXTURE_2D,0,a.LUMINANCE,e,t,0,a.LUMINANCE,a.UNSIGNED_BYTE,s);var l=e/2*t/2;var R=u.subarray(f,f+l);a.activeTexture(a.TEXTURE1);a.bindTexture(a.TEXTURE_2D,o);a.texImage2D(a.TEXTURE_2D,0,a.LUMINANCE,e/2,t/2,0,a.LUMINANCE,a.UNSIGNED_BYTE,R);var T=l;var v=u.subarray(f+l,f+l+T);a.activeTexture(a.TEXTURE2);a.bindTexture(a.TEXTURE_2D,n);a.texImage2D(a.TEXTURE_2D,0,a.LUMINANCE,e/2,t/2,0,a.LUMINANCE,a.UNSIGNED_BYTE,v)};e.prototype.SR_SetDisplayRect=function(e){var t=this.contextGL;var r=this.nWindowWidth;var a=this.nWindowHeight;var i=null;if(e&&r>0&&a>0){var o=e.left/r;var n=e.top/a;var u=e.right/r;var f=e.bottom/a;i=new Float32Array([u,n,o,n,u,f,o,f])}else{i=new Float32Array([1,0,0,0,1,1,0,1])}var s=this.texturePosBuffer;t.bindBuffer(t.ARRAY_BUFFER,s);t.bufferSubData(t.ARRAY_BUFFER,0,i);t.bindBuffer(t.ARRAY_BUFFER,null)};e.prototype.SR_Destroy=function(){var e=this.contextGL;var t=this.YUVProgram;e.deleteProgram(t);var r=this.vertexPosBuffer;var a=this.texturePosBuffer;e.deleteBuffer(r);e.deleteBuffer(a);var i=this.yTextureRef;var o=this.uTextureRef;var n=this.vTextureRef;e.deleteTexture(i);e.deleteTexture(o);e.deleteTexture(n)};return e});
+﻿"use strict";
+
+var vertexYUVShader = [
+    'attribute vec4 vertexPos;',
+    'attribute vec2 texturePos;',
+    'varying vec2 textureCoord;',
+
+    'void main()',
+    '{',
+        'gl_Position = vertexPos;',
+        'textureCoord = texturePos;',
+    '}'
+    ].join('\n');
+
+var fragmentYUVShader = [
+    'precision highp float;',
+    'varying highp vec2 textureCoord;',
+    'uniform sampler2D ySampler;',
+    'uniform sampler2D uSampler;',
+    'uniform sampler2D vSampler;',
+    'const mat4 YUV2RGB = mat4',
+    '(',
+        '1.1643828125, 0, 1.59602734375, -.87078515625,',
+        '1.1643828125, -.39176171875, -.81296875, .52959375,',
+        '1.1643828125, 2.017234375, 0, -1.081390625,',
+        '0, 0, 0, 1',
+    ');',
+  
+    'void main(void) {',
+        'highp float y = texture2D(ySampler,  textureCoord).r;',
+        'highp float u = texture2D(uSampler,  textureCoord).r;',
+        'highp float v = texture2D(vSampler,  textureCoord).r;',
+        'gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
+    '}'
+    ].join('\n');
+
+(function (root, factory) {
+    root.SuperRender = factory();
+}(this, function () {
+    
+    function RenderManager(canvas) {
+
+        this.canvasElement = document.getElementById(canvas);
+
+        this.initContextGL();
+
+        if(this.contextGL) {
+            this.YUVProgram = this.initProgram(vertexYUVShader, fragmentYUVShader);
+            this.initBuffers();
+            this.initTextures();
+        }
+    };
+
+    /**
+     * 初始化WebGL上下文
+     */
+    RenderManager.prototype.initContextGL = function() {
+        
+        var canvas = this.canvasElement;
+
+        var gl = null;
+
+        try {
+            gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        } catch (e) {
+            gl = null;
+        }
+
+        if(!gl || typeof gl.getParameter !== "function") {
+            gl = null;
+        }
+
+        this.contextGL = gl;
+
+        console.log("WebGL1.0");
+    };
+
+    /**
+     * 初始化着色器程序
+     * @param vertexShaderScript    顶点着色器脚本
+     * @param fragmentShaderScript  片段着色器脚本
+     */
+    RenderManager.prototype.initProgram = function(vertexShaderScript, fragmentShaderScript) {
+        
+        var gl = this.contextGL;
+        
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertexShaderScript);
+        gl.compileShader(vertexShader);
+        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            console.log('Vertex shader failed to compile: ' + gl.getShaderInfoLog(vertexShader));
+        }
+
+        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragmentShaderScript);
+        gl.compileShader(fragmentShader);
+        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            console.log('Fragment shader failed to compile: ' + gl.getShaderInfoLog(fragmentShader));
+        }
+
+        var program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.log('Program failed to compile: ' + gl.getProgramInfoLog(program));
+        }
+        
+        gl.deleteShader(vertexShader);
+        gl.deleteShader(fragmentShader);
+
+        return program;
+    };
+
+    /**
+     * 初始化数据缓存
+     */
+    RenderManager.prototype.initBuffers = function() {
+        
+        var gl = this.contextGL;
+    
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texturePosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        this.vertexPosBuffer  = vertexPosBuffer;
+        this.texturePosBuffer = texturePosBuffer;
+    };
+
+    /**
+     * 初始化YUV纹理
+     */
+    RenderManager.prototype.initTextures = function() {
+        
+        var gl = this.contextGL;
+        
+        var program = this.YUVProgram;
+        gl.useProgram(program);
+        
+        var yTextureRef = this.initTexture();
+        var ySamplerRef = gl.getUniformLocation(program, 'ySampler');
+        gl.uniform1i(ySamplerRef, 0);
+        this.yTextureRef = yTextureRef;
+
+        var uTextureRef = this.initTexture();
+        var uSamplerRef = gl.getUniformLocation(program, 'uSampler');
+        gl.uniform1i(uSamplerRef, 1);
+        this.uTextureRef = uTextureRef;
+
+        var vTextureRef = this.initTexture();
+        var vSamplerRef = gl.getUniformLocation(program, 'vSampler');
+        gl.uniform1i(vSamplerRef, 2);
+        this.vTextureRef = vTextureRef;
+        
+        gl.useProgram(null);
+    };
+
+    /**
+     * 创建纹理
+     */
+    RenderManager.prototype.initTexture = function() {
+        
+        var gl = this.contextGL;
+
+        var textureRef = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, textureRef);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        return textureRef;
+    };
+
+    /**
+     * 显示帧数据
+     * @param nWidth    宽度
+     * @param nHeight   高度
+     * @param nHeight   帧数据
+     */
+    RenderManager.prototype.SR_DisplayFrameData = function(nWidth, nHeight, pData) {
+
+        if(nWidth <= 0 || nHeight <= 0)
+        {
+            return;
+        }
+
+        var gl = this.contextGL;
+
+        if(null == pData)
+        {
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            return;
+        }
+
+        var canvas = this.canvasElement;
+
+        this.nWindowWidth = canvas.width;
+        this.nWindowHeight = canvas.height;
+        
+        var nWindowWidth = this.nWindowWidth;
+        var nWindowHeight = this.nWindowHeight;
+
+        gl.clearColor(0.8, 0.8, 1.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.viewport(0, 0, nWindowWidth, nWindowHeight);
+
+        this.updateFrameData(nWidth, nHeight, pData);
+
+        var program = this.YUVProgram;
+        gl.useProgram(program);
+
+        var vertexPosBuffer = this.vertexPosBuffer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        var vertexPosRef = gl.getAttribLocation(program, 'vertexPos');
+        gl.enableVertexAttribArray(vertexPosRef);
+        gl.vertexAttribPointer(vertexPosRef, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texturePosBuffer = this.texturePosBuffer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
+        var texturePosRef = gl.getAttribLocation(program, 'texturePos');
+        gl.enableVertexAttribArray(texturePosRef);
+        gl.vertexAttribPointer(texturePosRef, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); 
+
+        gl.disableVertexAttribArray(vertexPosRef);
+        gl.disableVertexAttribArray(texturePosRef);
+
+        gl.useProgram(null);
+    };
+
+    /**
+     * 上传YUV数据到纹理
+     * @param nWidth    宽度
+     * @param nHeight   高度
+     * @param nHeight   帧数据
+     */
+    RenderManager.prototype.updateFrameData = function(width, height, data) {
+
+        var gl = this.contextGL;
+
+        var yTextureRef = this.yTextureRef;
+        var uTextureRef = this.uTextureRef;
+        var vTextureRef = this.vTextureRef;
+
+        var i420Data = data;
+
+        var yDataLength = width * height;
+        var yData = i420Data.subarray(0, yDataLength);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width, height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
+
+        var cbDataLength = width/2 * height/2;
+        var cbData = i420Data.subarray(yDataLength, yDataLength + cbDataLength);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width/2, height/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, cbData);
+
+        var crDataLength = cbDataLength;
+        var crData = i420Data.subarray(yDataLength + cbDataLength, yDataLength + cbDataLength + crDataLength);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width/2, height/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, crData);
+    };
+
+    /**
+     * 设置显示区域
+     * @param stDisplayRect    显示区域
+     */
+    RenderManager.prototype.SR_SetDisplayRect = function(stDisplayRect) {
+
+        var gl = this.contextGL;
+
+        var nWindowWidth = this.nWindowWidth;
+        var nWindowHeight = this.nWindowHeight;
+        
+        var texturePosValues = null;
+        
+        if(stDisplayRect && nWindowWidth > 0 && nWindowHeight > 0) {
+            var fLeft = stDisplayRect.left / nWindowWidth;
+            var fTop = stDisplayRect.top / nWindowHeight;
+            var fRight = stDisplayRect.right / nWindowWidth;
+            var fBottom = stDisplayRect.bottom / nWindowHeight;
+
+            texturePosValues = new Float32Array([fRight, fTop, fLeft, fTop, fRight, fBottom, fLeft, fBottom]);
+        }
+        else {
+            texturePosValues = new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]);
+        }
+
+        var texturePosBuffer = this.texturePosBuffer;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, texturePosValues);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    };
+
+    /**
+     * 释放显示资源
+     */
+    RenderManager.prototype.SR_Destroy = function() {
+
+        var gl = this.contextGL;
+        
+        var YUVProgram = this.YUVProgram;
+        gl.deleteProgram(YUVProgram);
+
+        var vertexPosBuffer = this.vertexPosBuffer;
+        var texturePosBuffer = this.texturePosBuffer;
+        
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(texturePosBuffer);
+
+        var yTextureRef = this.yTextureRef;
+        var uTextureRef = this.uTextureRef;
+        var vTextureRef = this.vTextureRef;
+        gl.deleteTexture(yTextureRef);
+        gl.deleteTexture(uTextureRef);
+        gl.deleteTexture(vTextureRef);
+    };
+
+    return RenderManager;
+
+}));
