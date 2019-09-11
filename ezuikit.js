@@ -236,7 +236,6 @@
           var windowHeight = domElement.offsetHeight || playParams.height || 400;
           var offsetTop = domElement.offsetTop;
           var offsetLeft = domElement.offsetLeft;
-          console.log("windowHeight",windowHeight)
           
           var loadingContainerDOM = document.createElement('div');
           loadingContainerDOM.setAttribute('id','loading-id-0');
@@ -258,7 +257,6 @@
 
           var splitBasis = playParams.splitBasis || 1;
           for(var i=0; i< splitBasis * splitBasis; i++){
-            console.log("i",i);
             var loadingContainer = document.createElement('div');
             var loadingStatusDOM = document.createElement('div');
             loadingContainer.setAttribute('class','loading-item');
@@ -315,13 +313,6 @@
       /** 根据播放参数获取真实播放地址 */
       this.loadingStart();
       playStartTime = new Date().getTime();
-      // 音频自动播放
-      var audioId = 0
-      if(playParams.audioId){
-        audioId = playParams.audioId;
-      }else if(playParams.audioId === -1) {
-        audioId = undefined;
-      }
 
       var getRealUrl = this.getRealUrl(playParams);
       /**是否自动播放 */
@@ -333,7 +324,7 @@
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
             initDecoder.then(function (data) {
               _this.loadingSet(0,{text:'初始化完成'});
-              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess },audioId);
+              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess },playParams);
             })
           }
         })
@@ -557,10 +548,69 @@
                 if (!getQueryString('stream', data.data)) {
                   realUrl = realUrl.replace('stream', '&stream');
                 }
+                if(playParams.url.indexOf('.cloud')!== -1){
+                  // 调用回放API接口获取回放片段 - start
+                  var recBegin = reRormatRecTime(getQueryString('begin',realUrl));
+                  var recEnd = reRormatRecTime(getQueryString('end',realUrl));
+                  var deviceSerial = getQueryString('serial',realUrl)
+                  var channelNo = getQueryString('chn',realUrl);
+
+                  var recSliceUrl = apiDomain + "/api/lapp/video/by/time";
+                  var recSliceParams = {
+                    accessToken: playParams.accessToken,
+                    recType: 1,
+                    deviceSerial:deviceSerial,
+                    channelNo:channelNo,
+                    startTime:recBegin,
+                    endTime:recEnd
+                  }
+                  function recAPISuccess(data){
+                    if(data.code == 200 ) {
+                      var recSliceArr = [];
+                      if(data.data && data.data.length>0){
+                        recSliceArr = recSliceArrFun(data.data);
+                        var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\','');
+                        realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\',''));
+                        request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                      } else {
+                        _this.log('未找到录像片段', 'error');
+                        reject('未找到录像片段');
+                      }
+                    } else {
+                      _this.log(data.msg, 'error');
+                      reject('未找到录像片段');
+                    }
+                    function recSliceArrFun(data){
+                      var downloadPathArr = [];
+                      var currentDP = downloadPathArr.length
+                      data.forEach(function(item,index){
+                        if(downloadPathArr.length == 0 || (item.downloadPath !== downloadPathArr[downloadPathArr.length-1].downloadPath)){
+                          downloadPathArr.push({
+                            downloadPath: item.downloadPath,
+                            ownerId: item.ownerId,
+                            startTime: item.startTime,
+                            endTime: item.endTime
+                          })
+                        }else {
+                          downloadPathArr[downloadPathArr.length-1].endTime = item.endTime;
+                        }
+                      })
+                      return downloadPathArr;
+                    }
+                  }
+                } else {// 本地回放
+                  request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                }
+                function recAPIError(err){
+                  console.log("获取回放片段错误")
+                }
+                request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
+
+              } else {
+                // 预览直接获取回放片段
+                request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
               }
-              request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
               getPlayTokenST = new Date().getTime();
-              console.log("2.getPlayTokenST",getPlayTokenST)
               // 执行一次API服务请求上报
               var getRealUrlDurationET = new Date().getTime();
               ezuikitDclog({
@@ -751,6 +801,16 @@
       } else {
         throw new Error('回放时间格式有误，请确认');
       }
+    }
+    function reRormatRecTime(time){
+      var year = time.slice(0,4);
+      var month = time.slice(4,6);
+      var day = time.slice(6,8);
+      var hour = time.slice(9,11);
+      var minute = time.slice(11,13);
+      var second = time.slice(13,15);
+      var date = year + '-' + month + '-' + day + ' ' + hour + ':' + minute +':' + second;
+      return new Date(date).getTime();
     }
   };
 
@@ -1076,9 +1136,8 @@
   };
 
 
-  EZUIPlayer.prototype.play = function (params, audioId) {
+  EZUIPlayer.prototype.play = function (params, playParams) {
     //var index = params.index;
-   
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
       this.initCKPlayer();
@@ -1094,10 +1153,21 @@
         this.video.play();
       }
     } else if (!!this.jSPlugin) {
+        // 音频自动播放
+      var audioId = 0
+      if(playParams && playParams.audioId){
+        audioId = playParams.audioId;
+      }else if(playParams.audioId === -1) {
+        audioId = undefined;
+      }
       var _this = this;
       function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
-        var websocketStreamingParam = (url.indexOf('/live') === -1 ? '/playback?' : '/live?') + url.split('?')[1];
+        // console.log("playParams,",playParams,playParams.env.wsUrl)
+        if(playParams && playParams.env && playParams.env.wsUrl){
+          websocketConnectUrl= playParams.env.wsUrl;
+        }
+        var websocketStreamingParam = (url.indexOf('/live') === -1 ? url.indexOf('cloudplayback')!== -1 ? '/cloudplayback?' : '/playback?' : '/live?') + url.split('?')[1];
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
       if (!params || typeof params.index === 'undefined') {
@@ -1187,7 +1257,6 @@
             }
           })
         } else {
-          console.log("url不合法",item);
           if(isJSON(item) && JSON.parse(item).msg){
             _this.loadingSet(index,{text:JSON.parse(item).msg,color:'red'})
           }
@@ -1204,7 +1273,7 @@
     var initDecoderDurationST = new Date().getTime();
     // DOM id
     function initDecoder(resolve, reject) {
-      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0_test.js';
+      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js';
 
       /** 初始化解码器 */
       addJs(jsPluginPath, function () {
@@ -1212,8 +1281,8 @@
         /* decoder 属性配置 */
         _this.jSPlugin = new JSPlugin({
           szId: playParams.id,
-          iMode: 1,
-          iType: 1,
+          iType: 2,
+          iMode: 0,
           iWidth: playParams.width || 600,
           iHeight: playParams.height || 400,
           iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),
