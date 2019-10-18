@@ -224,7 +224,7 @@
         function insertAfter( newELement, targetElement ){
           var parent = targetElement.parentNode;
           if( parent.lastChild == targetElement ){
-              parent.appendChild( newElment );
+              parent.appendChild( newElement );
           }else{
               parent.insertBefore( newELement, targetElement.nextSibling );
           }
@@ -1215,13 +1215,20 @@
             if (params && params.handleSuccess) {
               params.handleSuccess();
             }
+            // 
             // 播放成功日志上报
+            var PlTp = 1;
+            if(playParams && playParams.url){
+              if(playParams.url.indexOf('rec')!== -1){
+                PlTp = 2;
+              }
+            }
             dclog({
               systemName: PLAY_MAIN,
               playurl: encodeURIComponent(item),
               Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
               Enc: 0,  // 0 不加密 1 加密
-              PlTp: 1,  // 1 直播 2 回放
+              PlTp: PlTp,  // 1 直播 2 回放
               Via: 2,  // 2 服务端取流
               ErrCd: 0,
               OpId: uuid(),
@@ -1397,14 +1404,17 @@
           });
           // 额外销毁worker
           this.jSPlugin.JS_DestroyWorker();
+		  _this.loadingEnd(0);
           removeChild(index);
         }
       } else {
         this.jSPlugin.JS_Stop(i).then(function () {
           _this.log("停止播放成功" + _this.opt.currentSource);
+          _this.loadingEnd(0);
           console.log("stop success");
         }, function () {
           _this.log("停止播放失败" + _this.opt.currentSource);
+          _this.loadingEnd(0);
           console.log("stop failed");
         });
         // 额外销毁worker
@@ -1470,7 +1480,7 @@
   EZUIPlayer.prototype.startSave = function (iWind, fileName) {
     if (!!this.jSPlugin) {
       this.log("开始录制录像");
-      this.jSPlugin.JS_StartSave(iWind, fileName,{iPackage: 1})
+      this.jSPlugin.JS_StartSave(iWind, fileName)
     } else {
       throw new Error("Method  not support");
     }
