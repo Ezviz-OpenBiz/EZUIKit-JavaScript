@@ -1,5 +1,5 @@
 /**
- * jssdk 2.4
+ * jssdk 2.6
  */
 (function (global, factory) {
 
@@ -186,7 +186,7 @@
     /**获取浏览器名称，版本 */
   function getBrowserInfo() {var Sys = {}; var ua = navigator.userAgent.toLowerCase();var re = /(msie|firefox|chrome|opera|version).*?([\d.]+)/;var m = ua.match(re);try{Sys.browser = m[1].replace(/version/, "'safari"); Sys.ver = m[2];}catch(e){console.log("getBrowserInfo fail.")}return Sys;}
   /** 是否为JSON格式字符串 */
-  function isJSON(str) { if (typeof str == 'string') {try {var obj=JSON.parse(str);if(typeof obj == 'object' && obj ){return true;}else{return false;}} catch(e) {console.log('error：'+str+'!!!'+e);return false;}}console.log('It is not a string!')}
+  function isJSON(str) {if (typeof str == 'string') {try {var obj=JSON.parse(str);if(typeof obj == 'object' && obj ){return true;}else{return false;}} catch(e) {return false;}}console.log('It is not a string!')}
   
   var EZUIPlayer = function (playParams) {
     if (!isModernBrowser) {
@@ -236,7 +236,10 @@
           var windowHeight = domElement.offsetHeight || playParams.height || 400;
           var offsetTop = domElement.offsetTop;
           var offsetLeft = domElement.offsetLeft;
-          
+          // 先执行清空loading
+          if(document.getElementById('loading-id-0')){
+            document.getElementById('loading-id-0').parentNode.removeChild(document.getElementById('loading-id-0'))
+          }
           var loadingContainerDOM = document.createElement('div');
           loadingContainerDOM.setAttribute('id','loading-id-0');
           var style = 'position:absolute;outline:none;'
@@ -261,7 +264,7 @@
             var loadingStatusDOM = document.createElement('div');
             loadingContainer.setAttribute('class','loading-item');
             loadingContainer.setAttribute('id','loading-item-' + i);
-            loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+windowWidth+'px;height:'+windowHeight+'px;outline:none;vertical-align: top;');
+            loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;');
             var loadingDOM = document.createElement('div');
             loadingStatusDOM.innerHTML="";
             loadingStatusDOM.style.color="#fff";
@@ -280,16 +283,24 @@
 
       }
       this.loadingSet = function(index,opt){
-        var textElement = document.getElementById('loading-id-0').childNodes[index].childNodes[1];
-        textElement.innerHTML = opt.text;
-        if(opt.color){
-          textElement.style.color = opt.color;
+        var loadingContainer = document.getElementById('loading-id-0');
+        if(loadingContainer && loadingContainer.childNodes[index]){
+          var textElement = document.getElementById('loading-id-0').childNodes[index].childNodes[1];
+          textElement.innerHTML = opt.text;
+          if(opt.color){
+            textElement.style.color = opt.color;
+          }
         }
       }
       this.loadingEnd = function(index){
-        this.log("结束显示loading",index);
-        var loadingContainerDOM = document.getElementById('loading-item-' + index);
-        loadingContainerDOM.innerHTML="";
+        var loadingItemContainerDOM = document.getElementById('loading-item-' + index);
+        if(loadingItemContainerDOM){
+          loadingItemContainerDOM.parentNode.removeChild(loadingItemContainerDOM);
+          var loadingContainerDOM = document.getElementById('loading-id-0');
+          if(loadingContainerDOM && loadingContainerDOM.children.length===0){
+            loadingContainerDOM.parentNode.removeChild(loadingContainerDOM);
+          }
+        }
       }
       // 将播放地址配置在实例 opt 属性中
       this.opt.sources.push(playParams.url);
@@ -574,10 +585,12 @@
                         request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
                       } else {
                         _this.log('未找到录像片段', 'error');
+                        _this.loadingSet(0,{text:'获取设备播放地址'})
                         reject('未找到录像片段');
                       }
                     } else {
                       _this.log(data.msg, 'error');
+                      _this.loadingSet(0,{text:'获取设备播放地址'})
                       reject('未找到录像片段');
                     }
                     function recSliceArrFun(data){
@@ -598,13 +611,14 @@
                       return downloadPathArr;
                     }
                   }
+                  function recAPIError(err){
+                    console.log("获取回放片段错误")
+                  }
+                  request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
+                  
                 } else {// 本地回放
                   request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
                 }
-                function recAPIError(err){
-                  console.log("获取回放片段错误")
-                }
-                request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
 
               } else {
                 // 预览直接获取回放片段
@@ -1168,6 +1182,11 @@
           websocketConnectUrl= playParams.env.wsUrl;
         }
         var websocketStreamingParam = (url.indexOf('/live') === -1 ? url.indexOf('cloudplayback')!== -1 ? '/cloudplayback?' : '/playback?' : '/live?') + url.split('?')[1];
+          // 本地回放仅支持主码流 - 2019-11-05 修订
+          if(websocketStreamingParam.indexOf('/playback') !==-1){
+            websocketStreamingParam = websocketStreamingParam.replace("stream=2",'stream=1');
+          }
+          // 本地回放仅支持主码流
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
       if (!params || typeof params.index === 'undefined') {
@@ -1264,6 +1283,7 @@
             }
           })
         } else {
+
           if(isJSON(item) && JSON.parse(item).msg){
             _this.loadingSet(index,{text:JSON.parse(item).msg,color:'red'})
           }
@@ -1409,16 +1429,16 @@
         }
       } else {
         this.jSPlugin.JS_Stop(i).then(function () {
-          _this.log("停止播放成功" + _this.opt.currentSource);
-          _this.loadingEnd(0);
+          _this.log("第" + i+"路停止播放成功" + _this.opt.currentSource);
+          _this.loadingEnd(i);
           console.log("stop success");
         }, function () {
-          _this.log("停止播放失败" + _this.opt.currentSource);
-          _this.loadingEnd(0);
+          _this.log("第" + i+"路停止播放失败" + _this.opt.currentSource);
+          _this.loadingEnd(i);
           console.log("stop failed");
         });
-        // 额外销毁worker
-        //this.jSPlugin.JS_DestroyWorker();
+        // 额外销毁worker - 多窗口暂不销毁
+        // this.jSPlugin.JS_DestroyWorker();
         removeChild(i);
       }
       function removeChild(index) {
