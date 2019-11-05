@@ -586,12 +586,14 @@
                       } else {
                         _this.log('未找到录像片段', 'error');
                         _this.loadingSet(0,{text:'获取设备播放地址'})
-                        reject('未找到录像片段');
+                        resolve(JSON.stringify({code:-1,msg:"未找到录像片段"}))
+                        // reject('未找到录像片段');
                       }
                     } else {
                       _this.log(data.msg, 'error');
-                      _this.loadingSet(0,{text:'获取设备播放地址'})
-                      reject('未找到录像片段');
+                      _this.loadingSet(0,{text:'获取设备播放地址'});
+                      resolve(JSON.stringify({code:-1,msg:"未找到录像片段"}))
+                      //reject('未找到录像片段');
                     }
                     function recSliceArrFun(data){
                       var downloadPathArr = [];
