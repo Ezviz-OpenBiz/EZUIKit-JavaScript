@@ -3481,8 +3481,15 @@
         },
         {
             "moduleCode": "",
+            "detailCode": "7005",
+            "description": "VTDU主动断开连接",
+            "solution": "",
+            "updateTime": 1522034840000
+        },
+        {
+            "moduleCode": "",
             "detailCode": "107005",
-            "description": "无法删除邀请",
+            "description": "VTDU主动断开连接",
             "solution": "",
             "updateTime": 1522034840000
         },
