@@ -221,12 +221,12 @@
         document.getElementsByTagName("head")[0].appendChild(oS);
         oS.innerHTML= '@keyframes antRotate {to {transform: rotate(400deg);transform-origin:50% 50%;}} .loading {display: inline-block;z-index: 1000;-webkit-animation: antRotate 1s infinite linear;animation: antRotate 1s infinite linear;}';
         /**DOM 操作方法 */
-        function insertAfter( newELement, targetElement ){
+        function insertAfter( newElement, targetElement ){
           var parent = targetElement.parentNode;
           if( parent.lastChild == targetElement ){
               parent.appendChild( newElement );
           }else{
-              parent.insertBefore( newELement, targetElement.nextSibling );
+              parent.insertBefore( newElement, targetElement.nextSibling );
           }
         } 
         if(playParams && playParams.id){
