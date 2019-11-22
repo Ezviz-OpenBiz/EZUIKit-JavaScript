@@ -826,7 +826,7 @@
       var minute = time.slice(11,13);
       var second = time.slice(13,15);
       var date = year + '-' + month + '-' + day + ' ' + hour + ':' + minute +':' + second;
-      return new Date(date).getTime();
+      return new Date(date.replace(/-/g,'/')).getTime();
     }
   };
 
