@@ -259,7 +259,8 @@
           insertAfter( loadingContainerDOM,domElement );
 
           var splitBasis = playParams.splitBasis || 1;
-          for(var i=0; i< splitBasis * splitBasis; i++){
+          var windowLength = playParams.url.split(",").length;
+          for(var i=0; i< windowLength; i++){
             var loadingContainer = document.createElement('div');
             var loadingStatusDOM = document.createElement('div');
             loadingContainer.setAttribute('class','loading-item');
