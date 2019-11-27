@@ -84,13 +84,19 @@
           // handleSuccess: handleSuccess,
         });
       })
-      $("#stop").click(function () {
-        decoder.stop(0);
-        decoder.stop(1);
-        decoder.stop(2);
-        decoder.stop(3);
-      })
     })
+    $("#stop").click(function () {
+        var url = $('#url').val().trim();
+        var urlList = [];
+        if(url.length >0){
+          urlList = url.split(',');
+        }
+        for(var i = 0; i<urlList.length; i++){
+          if(urlList[i] && urlList[i].length>0){
+            decoder.stop(i);
+          }
+        }
+      })
 
   </script>
 </body>
