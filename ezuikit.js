@@ -243,8 +243,8 @@
           var loadingContainerDOM = document.createElement('div');
           loadingContainerDOM.setAttribute('id','loading-id-0');
           var style = 'position:absolute;outline:none;'
-          style += 'width:' + windowWidth + 'px;'
-          style += 'height:' + windowHeight + 'px;'
+          style += 'width: 0px;'
+          style += 'height: 0px;'
           style += 'top:' + offsetTop + 'px;'
           style += 'left:' + offsetLeft + 'px;'
 
@@ -265,7 +265,20 @@
             var loadingStatusDOM = document.createElement('div');
             loadingContainer.setAttribute('class','loading-item');
             loadingContainer.setAttribute('id','loading-item-' + i);
-            loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;');
+            //loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;position:absolute');
+            var style = 'display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;position:absolute;';
+            style += ('left:' + calLoadingPostion(windowHeight,windowWidth,splitBasis,i).left + 'px;');
+            style += ('top:' + calLoadingPostion(windowHeight,windowWidth,splitBasis,i).top + 'px;');
+            loadingContainer.setAttribute('style',style);
+            function calLoadingPostion(windowHeight,windowWidth,splitBasis,i){
+              var top = parseInt(i / splitBasis,10)*(windowHeight/splitBasis);
+              var left = (i % splitBasis) * (windowWidth/splitBasis);
+              console.log("i,top,left",i,top,left);
+              return {
+                top:top,
+                left:left
+              }
+            }
             var loadingDOM = document.createElement('div');
             loadingStatusDOM.innerHTML="";
             loadingStatusDOM.style.color="#fff";
@@ -286,7 +299,7 @@
       this.loadingSet = function(index,opt){
         var loadingContainer = document.getElementById('loading-id-0');
         if(loadingContainer && loadingContainer.childNodes[index]){
-          var textElement = document.getElementById('loading-id-0').childNodes[index].childNodes[1];
+          var textElement = document.getElementById('loading-item-' + index).childNodes[1];
           textElement.innerHTML = opt.text;
           if(opt.color){
             textElement.style.color = opt.color;
