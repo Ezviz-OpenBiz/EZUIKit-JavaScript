@@ -1416,22 +1416,19 @@
     } else if (!!this.jSPlugin) {
       var _this = this;
       if (typeof i === "undefined") {
-        var length = this.opt.sources.length;
-        for (index = 0; index < length; index++) {
-          this.jSPlugin.JS_Stop(index).then(function () {
+          return this.jSPlugin.JS_Stop(0).then(function () {
             _this.log("停止播放成功" + _this.opt.currentSource);
             console.log("stop success");
+          // 额外销毁worker
+          _this.jSPlugin.JS_DestroyWorker();
+		      _this.loadingEnd(0);
+          removeChild(0);
           }, function () {
             _this.log("停止播放失败" + _this.opt.currentSource);
             console.log("stop failed");
           });
-          // 额外销毁worker
-          this.jSPlugin.JS_DestroyWorker();
-		  _this.loadingEnd(0);
-          removeChild(index);
-        }
       } else {
-        this.jSPlugin.JS_Stop(i).then(function () {
+        return this.jSPlugin.JS_Stop(i).then(function () {
           _this.log("第" + i+"路停止播放成功" + _this.opt.currentSource);
           _this.loadingEnd(i);
           console.log("stop success");
@@ -1454,17 +1451,27 @@
     }
   };
   // 获取OSD时间
-  EZUIPlayer.prototype.getOSDTime = function (callback, iWind) {
+  // EZUIPlayer.prototype.getOSDTime = function (callback, iWind) {
+  //   if (!!this.jSPlugin) {
+  //     this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function (iTime) {
+  //       callback(iTime * 1000);
+  //     }, function (err) {
+  //       console.log("get OSD Time error", err);
+  //     });
+  //   } else {
+  //     throw new Error("Method  not support");
+  //   }
+  // }
+  // 返回promise的getOSDTime方法
+  EZUIPlayer.prototype.getOSDTime = function(wNum) {
+    const _this = this;
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_GetOSDTime(iWind || 0).then(function (iTime) {
-        callback(iTime * 1000);
-      }, function (err) {
-        console.log("get OSD Time error", err);
-      });
+      return _this.jSPlugin.JS_GetOSDTime(wNum || 0);
     } else {
       throw new Error("Method  not support");
     }
   }
+  
   // 开启声音
   EZUIPlayer.prototype.openSound = function (iWind) {
     if (!!this.jSPlugin) {
@@ -1548,6 +1555,23 @@
       this.video.load();
     }
   };
+  // 开启电子放大
+  EZUIPlayer.prototype.enableZoom = function(iWind) {
+    if (!!this.jSPlugin) {
+      return this.jSPlugin.JS_EnableZoom(iWind || 0);
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+  // 关闭电子放大
+  EZUIPlayer.prototype.closeZoom = function(iWind) {
+    if (!!this.jSPlugin) {
+      return this.jSPlugin.JS_DisableZoom(iWind || 0);
+    } else {
+      throw new Error("Method  not support");
+    }
+  }
+
 
 
   // iOS11手机HLS直播在m3u8响应时间过长后不继续请求的hack
