@@ -54,6 +54,8 @@
     <button id="capturePicture">视频截图</button>
     <button id="startSave">开始录像</button>
     <button id="stopSave">停止录像</button>
+    <button id="enableZoom">开启电子放大</button>
+    <button id="closeZoom">关闭电子放大</button>
     <span>录制功能不支持加密视频，且录制的文件需要<a href="https://service.ys7.com/downloadInfoSite/admin" target="_blank">下载海康播放器播放</a></span>
 
   </div>
@@ -105,14 +107,19 @@
         decoder.pause();
       })
       $("#stop").click(function () {
-        decoder.stop();
+        /*停止播放方法1*/
+        // decoder.stop();
+        /*停止播放方法2 - promise模式*/
+        var stopPromise = decoder.stop();
+        stopPromise.then(function(){
+          console.log("关闭成功，用户执行关闭成功后的操作");
+        })
       })
       $("#getOSDTime").click(function () {
-        var callback = function(iTime){
-          alert(iTime);
-          console.log("iTime",iTime);
-        }
-        decoder.getOSDTime(callback);
+        var getOSDTimePromise = decoder.getOSDTime();
+        getOSDTimePromise.then(function(data){
+          console.log("getOSDTime success",data)
+        })
       })
       $("#openSound").click(function () {
         decoder.openSound();
@@ -131,6 +138,12 @@
       })
       $("#play").click(function () {
         decoder.play();
+      })
+      $("#enableZoom").click(function () {
+        decoder.enableZoom();
+      })
+      $("#closeZoom").click(function () {
+        decoder.closeZoom();
       })
     })
   </script>
