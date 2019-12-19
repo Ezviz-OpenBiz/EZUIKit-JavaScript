@@ -201,6 +201,9 @@
     // 修订 - 支持JS Decoder 允许非字符串配置项
     if (typeof playParams === 'object' && playParams.hasOwnProperty('decoderPath')) {
       /* 校验播放器配置参数合法性 */
+      var oS=document.createElement('style');
+      document.getElementsByTagName("head")[0].appendChild(oS);
+      oS.innerHTML= '.draw-window {border: none!important}';
       // 解码器路径
       if (typeof playParams.decoderPath !== 'string' || typeof playParams.decoderPath === 'undefined') {
         throw new Error('EZUIDecoder requires the path of decoder');
@@ -1490,6 +1493,7 @@
     if (!!this.jSPlugin) {
       var openSoundRT = this.jSPlugin.JS_OpenSound(iWind || 0);
       openSoundRT === 0 ? this.log('开启声音成功') : this.log('开启声音失败','error');
+      return openSoundRT;
     } else {
       throw new Error("Method  not support");
     }
