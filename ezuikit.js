@@ -1438,7 +1438,7 @@
           // 额外销毁worker
           _this.jSPlugin.JS_DestroyWorker();
 		      _this.loadingEnd(0);
-          removeChild(0);
+          //removeChild(0);
           }, function () {
             _this.log("停止播放失败" + _this.opt.currentSource);
             console.log("stop failed");
@@ -1455,7 +1455,7 @@
         });
         // 额外销毁worker - 多窗口暂不销毁
         // this.jSPlugin.JS_DestroyWorker();
-        removeChild(i);
+        //removeChild(i);
       }
       function removeChild(index) {
         var windDOM = document.getElementById(_this.opt.id).childNodes[0].childNodes[index];
