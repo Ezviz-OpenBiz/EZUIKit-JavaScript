@@ -620,6 +620,9 @@
                           downloadPathArr.push({
                             downloadPath: item.downloadPath,
                             ownerId: item.ownerId,
+                            iStorageVersion: item.iStorageVersion,
+                            videoType: item.videoType,
+                            iPlaySpeed: 0,
                             startTime: item.startTime,
                             endTime: item.endTime
                           })
