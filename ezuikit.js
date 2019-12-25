@@ -301,7 +301,7 @@
       }
       this.loadingSet = function(index,opt){
         var loadingContainer = document.getElementById('loading-id-0');
-        if(loadingContainer && loadingContainer.childNodes[index]){
+        if(document.getElementById('loading-item-' + index)){
           var textElement = document.getElementById('loading-item-' + index).childNodes[1];
           textElement.innerHTML = opt.text;
           if(opt.color){
