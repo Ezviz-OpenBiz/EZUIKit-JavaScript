@@ -103,9 +103,6 @@
           handleError: handleError,
         });
       })
-      $("#pause").click(function () {
-        decoder.pause();
-      })
       $("#stop").click(function () {
         /*停止播放方法1*/
         // decoder.stop();
@@ -128,13 +125,36 @@
         decoder.closeSound();
       })
       $("#capturePicture").click(function () {
-        decoder.capturePicture(0,'default');
+        /*截图方法1*/
+        // decoder.capturePicture(0,'default');
+         /*截图方法2*/
+        var capturePicturePromise = decoder.capturePicture(0,'default');
+        capturePicturePromise.then(function(data){
+          console.log("截图成功，用户执行关闭成功后的操作",data);
+        })
       })
       $("#startSave").click(function () {
-        decoder.startSave(0, (new Date().getTime() + 'video'));
+        // decoder.startSave(0, (new Date().getTime() + 'video'));
+        /*开始录制方法2*/
+        var startSavePromise = decoder.startSave(0, (new Date().getTime() + 'video'));
+        startSavePromise.then(function(data){
+          console.log("start save success",startSavePromise)
+        })
+        .catch(function(error){
+          console.log("start Save error",error)
+        })
       })
       $("#stopSave").click(function () {
-        decoder.stopSave(0);
+        /*结束录制方法1*/
+        // decoder.stopSave(0);
+        /*结束录制方法2*/
+        var stopSavePromise = decoder.stopSave(0);
+        stopSavePromise.then(function(data){
+          console.log("stop save success",stopSavePromise)
+        })
+        .catch(function(error){
+          console.log("stop Save error",error)
+        })
       })
       $("#play").click(function () {
         decoder.play();
