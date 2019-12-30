@@ -276,7 +276,6 @@
             function calLoadingPostion(windowHeight,windowWidth,splitBasis,i){
               var top = parseInt(i / splitBasis,10)*(windowHeight/splitBasis);
               var left = (i % splitBasis) * (windowWidth/splitBasis);
-              console.log("i,top,left",i,top,left);
               return {
                 top:top,
                 left:left
@@ -1502,9 +1501,9 @@
     }
   }
     // 全屏
-  EZUIPlayer.prototype.fullScreen = function (value) {
+  EZUIPlayer.prototype.fullScreen = function () {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_FullScreenDisplay(value);
+      return this.jSPlugin.JS_FullScreenDisplay(1);
     } else {
       throw new Error("Method  not support");
     }
@@ -1514,6 +1513,7 @@
     if (!!this.jSPlugin) {
       var closeSoundRT = this.jSPlugin.JS_CloseSound(iWind || 0);
       closeSoundRT === 0 ? this.log('关闭声音成功') : this.log('关闭声音失败','error');
+      return closeSoundRT;
     } else {
       throw new Error("Method  not support");
     }
@@ -1521,7 +1521,7 @@
   // 视频截图
   EZUIPlayer.prototype.capturePicture = function (iWind, pictureName) {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_CapturePicture(iWind, pictureName)
+      return this.jSPlugin.JS_CapturePicture(iWind, pictureName)
     } else {
       throw new Error("Method  not support");
     }
@@ -1530,7 +1530,7 @@
   EZUIPlayer.prototype.startSave = function (iWind, fileName) {
     if (!!this.jSPlugin) {
       this.log("开始录制录像");
-      this.jSPlugin.JS_StartSave(iWind, fileName)
+      return this.jSPlugin.JS_StartSave(iWind, fileName)
     } else {
       throw new Error("Method  not support");
     }
@@ -1538,7 +1538,7 @@
   // 结束录像
   EZUIPlayer.prototype.stopSave = function (iWind) {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_StopSave(iWind);
+      return this.jSPlugin.JS_StopSave(iWind);
       this.log("结束录制录像");
     } else {
       throw new Error("Method  not support");
@@ -1546,7 +1546,7 @@
   }
   EZUIPlayer.prototype.reSize = function (width,height) {
     if (!!this.jSPlugin) {
-      this.jSPlugin.JS_Resize(width,height);
+      return this.jSPlugin.JS_Resize(width,height);
     } else {
       throw new Error("Method  not support");
     }
