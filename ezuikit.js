@@ -351,7 +351,7 @@
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
             initDecoder.then(function (data) {
               _this.loadingSet(0,{text:'初始化完成'});
-              _this.play({ handleError: playParams.handleError, handleSuccess: playParams.handleSuccess },playParams);
+              _this.play(playParams);
             })
           }
         })
@@ -1169,9 +1169,23 @@
     }
     this.flv = flvPlayer;
   };
+  EZUIPlayer.prototype.rePlay = function(playParams){
+    this.loadingStart();
+    // _this.loadingSet(0,{text:'获取设备播放地址'})
+    var _this = this;
+    var getRealUrl = this.getRealUrl(playParams);
+    /**是否自动播放 */
+    if (isPromise(getRealUrl)) {
+      getRealUrl.then(function (data) {
+        _this.play(playParams);
+      })
+        .catch(function (err) {
+          console.log("播放错误",err)
+        });
+    }
+  }
 
-
-  EZUIPlayer.prototype.play = function (params, playParams) {
+  EZUIPlayer.prototype.play = function (playParams) {
     //var index = params.index;
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
@@ -1210,7 +1224,7 @@
           // 本地回放仅支持主码流
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
-      if (!params || typeof params.index === 'undefined') {
+      if (!playParams || typeof playParams.index === 'undefined') {
         _this.opt.sources.forEach(function (item, index) {
           if(getQueryString('dev',item)){
           _this.log("开始播放, 第" + (index+1)+ '路，' + '地址：' + item);
@@ -1252,8 +1266,8 @@
               }, 100)
             }
             // 播放成功回调
-            if (params && params.handleSuccess) {
-              params.handleSuccess();
+            if (playParams && playParams.handleSuccess) {
+              playParams.handleSuccess();
             }
             // 
             // 播放成功日志上报
@@ -1298,9 +1312,9 @@
               Serial: getQueryString('dev',item),
               Channel: getQueryString('chn',item),
             });
-            if (params && params.handleError) {
+            if (playParams && playParams.handleError) {
               var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
-              params.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
+              playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
             }
           })
         } else {
@@ -1406,7 +1420,7 @@
 
     return initDecoderPromise;
   }
-  EZUIPlayer.prototype.stop = function (i) {
+  EZUIPlayer.prototype.stop = function (i,unDestory) {
     // 执行停止
     this.log("停止播放" + this.opt.currentSource);
     this.opt.autoplay = false;
@@ -1438,7 +1452,7 @@
             _this.log("停止播放成功" + _this.opt.currentSource);
             console.log("stop success");
           // 额外销毁worker
-          _this.jSPlugin.JS_DestroyWorker();
+          // _this.jSPlugin.JS_DestroyWorker();
 		      _this.loadingEnd(0);
           //removeChild(0);
           }, function () {
@@ -1459,15 +1473,12 @@
         // this.jSPlugin.JS_DestroyWorker();
         //removeChild(i);
       }
-      function removeChild(index) {
-        var windDOM = document.getElementById(_this.opt.id).childNodes[0].childNodes[index];
-        var childs = windDOM.childNodes;
-        for (var i = childs.length - 1; i >= 0; i--) {
-          windDOM.removeChild(childs[i]);
-        }
-      }
     }
   };
+  EZUIPlayer.prototype.destroy = function (i) {
+    _this.jSPlugin.JS_DestroyWorker();
+  }
+  
   // 获取OSD时间
   // EZUIPlayer.prototype.getOSDTime = function (callback, iWind) {
   //   if (!!this.jSPlugin) {
@@ -1489,6 +1500,15 @@
       throw new Error("Method  not support");
     }
   }
+    // 返回promise的getOSDTime方法
+    EZUIPlayer.prototype.getVersion = function(wNum) {
+      const _this = this;
+      if (!!this.jSPlugin) {
+        console.log(_this.jSPlugin.JS_GetSdkVersion());
+      } else {
+        throw new Error("Method  not support");
+      }
+    }
   
   // 开启声音
   EZUIPlayer.prototype.openSound = function (iWind) {
