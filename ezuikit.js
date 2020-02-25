@@ -924,10 +924,16 @@
           return;
         }
       } else if (/\.flv/.test(this.opt.currentSource)) {
-        addJs(flv_js, function () {
-          me.log("使用flv.js播放");
-          me.initflv();
-        });
+        if (!ltIE11()) {
+          addJs(ckplayerJS, function () {
+            me.initCKPlayer();
+          });
+        } else {
+          addJs(flv_js, function () {
+            me.log("使用flv.js播放");
+            me.initflv();
+          });
+        }
       }
     }
   };
