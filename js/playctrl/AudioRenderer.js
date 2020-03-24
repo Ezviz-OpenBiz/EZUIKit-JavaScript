@@ -75,6 +75,8 @@ var AudioRenderer = function () {
             var channels = audioInfo.channels;
             var bitsPerSample = audioInfo.bitsPerSample;
 
+            //console.log("audiorender sampleRates"+sampleRates+"channels:"+channels+"bitsPerSample:"+bitsPerSample);
+
             /* RIFF identifier */
             this.writeString(viewTalk, 0, 'RIFF');
             /* file length */

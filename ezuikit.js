@@ -441,7 +441,7 @@
         Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
         Enc: 0,  // 0 不加密 1 加密
         PlTp: 1,  // 1 直播 2 回放
-        Via: 2,  // 2 服务端取流
+        Via: 2,  // 2 私有流 911 标准流
         ErrCd: 0,
         OpId: uuid(),
         Cost: (new Date()).getTime() - this.initTime  // 毫秒数
