@@ -86,9 +86,9 @@
   function dclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
     var logObj = {
-      Ver: 'v.2.6.0',
+      Ver: 'v.2.6.5',
       PlatAddr: domain,
-      ExterVer: 'Ez.2.6.0',
+      ExterVer: 'Ez.2.6.5',
       OpId: uuid(),
       CltType: 102,
       StartTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),  // 每个日志包含当前的时间
