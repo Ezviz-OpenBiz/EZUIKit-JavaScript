@@ -82,6 +82,7 @@
   // 日志上报（轻应用独立上报）
   var LOCALINFO_EZUIKIT = 'open_ezuikit_localinfo';
   var PERFORMANCE_EZUIKIT = 'open_ezuikit_performance';
+  var appKey = "";
 
   function dclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
@@ -91,6 +92,7 @@
       ExterVer: 'Ez.2.6.5',
       OpId: uuid(),
       CltType: 102,
+      AppId: appKey,
       StartTime: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),  // 每个日志包含当前的时间
       OS: navigator.platform
     }
@@ -111,8 +113,9 @@
   function ezuikitDclog(obj) {
     var domain = window.location.protocol + '//' + window.location.host;
     var logObj = {
-      version: 'v.2.6.0',
+      version: 'v.2.6.5',
       plate_addr: domain,
+      appId: appKey,
       st: new Date().getTime(),  // 每个日志包含当前的时间
     }
     for (var i in obj) {
@@ -128,17 +131,6 @@
     var img = new Image();
     img.src = logDomain + params;
   }
-
-  // 上报一次本地信息
-  dclog({
-    systemName: LOCALINFO
-  });
-  // 上报一次本地信息-新
-  ezuikitDclog({
-    systemName: LOCALINFO_EZUIKIT,
-    os: navigator.platform,
-    browser: JSON.stringify(getBrowserInfo())
-  })
 
   var RTMP_REG = /^rtmp/;
   var HLS_REG = /\.m3u8/;
@@ -365,6 +357,7 @@
           });
       }
     } else {
+      var domain = "https://open.ys7.com";
       var elementID = '';
       if (typeof playParams === 'string') {         //缩写模式 new EZUIPlayer('myplayer')
         elementID = playParams;
@@ -434,6 +427,7 @@
     this.handlers = {};
     this.initTime = (new Date()).getTime();
     this.on('play', function () {
+      console.log("this.opt.currentSource",this.opt.currentSource)
       // 上报播放成功信息
       dclog({
         systemName: PLAY_MAIN,
@@ -441,7 +435,7 @@
         Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
         Enc: 0,  // 0 不加密 1 加密
         PlTp: 1,  // 1 直播 2 回放
-        Via: 2,  // 2 私有流 911 标准流
+        Via: 911,  // 2 私有流 911 标准流
         ErrCd: 0,
         OpId: uuid(),
         Cost: (new Date()).getTime() - this.initTime  // 毫秒数
@@ -454,9 +448,65 @@
         playurl: this.opt.currentSource,
         cost: -1,
         ErrCd: -1,
+        Via: 911,  // 2 私有流 911 标准流
         OpId: uuid(),
       });
     });
+    var appInfoSuccess = function (data) {
+      if (data.retcode === 0 && data.data) {
+        console.log("data",data);
+        appKey = data.data.appKey;
+      }
+      // 上报一次本地信息
+      dclog({
+        systemName: LOCALINFO,
+      });
+      // 上报一次本地信息-新
+      ezuikitDclog({
+        systemName: LOCALINFO_EZUIKIT,
+        os: navigator.platform,
+        browser: JSON.stringify(getBrowserInfo()),
+      })
+    }
+    var appInfoError = function (error) {
+      // 上报一次本地信息
+      dclog({
+        systemName: LOCALINFO
+      });
+      // 上报一次本地信息-新
+      ezuikitDclog({
+        systemName: LOCALINFO_EZUIKIT,
+        os: navigator.platform,
+        browser: JSON.stringify(getBrowserInfo()),
+      })
+    }
+    var deviceSerial = '';
+    var playUid = '';
+    var uuidReg = /[a-z0-9]{32}/;
+    var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
+    if(typeof playParams === 'string'){
+      var url = this.opt.currentSource;
+      if(uuidReg.test(url)){
+        playUid = url.match(uuidReg)[0];
+      }else if(deviceSerialReg.test(url)){
+        deviceSerial = url.match(deviceSerialReg)[0].split('/')[0];
+      }
+    }else if(typeof playParams === 'object'){
+      var url = playParams.url;
+      if(uuidReg.test(url)){
+        playUid = url.match(uuidReg);
+      }else if(deviceSerialReg.test(url)){
+        deviceSerial = url.match(deviceSerialReg)[0].split('/')[0];
+      }
+    }
+    // 获取appKey
+    request(domain + '/jssdk/ezopen/getAppInfo?uuid='+ playUid + "&deviceSerial=" + deviceSerial + "&channelNo=1",
+    'GET',
+    '',
+    '',
+    appInfoSuccess,
+    appInfoError
+    );
   };
 
   // 事件监听
@@ -1313,7 +1363,8 @@
               systemName: PLAY_MAIN,
               playurl: encodeURIComponent(item),
               cost: -1,
-              ErrCd: -1,
+              ErrCd: (err && err.oError && err.oError.errorCode && (err.oError.errorCode+"").substr(-4)) || -1,
+              Via: 2,
               OpId: uuid(),
               Serial: getQueryString('dev',item),
               Channel: getQueryString('chn',item),
