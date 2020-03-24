@@ -3461,7 +3461,7 @@
         {
             "moduleCode": "",
             "detailCode": "107004",
-            "description": "无法取消邀请",
+            "description": "云存储连接失败",
             "solution": "",
             "updateTime": 1522034840000
         },
