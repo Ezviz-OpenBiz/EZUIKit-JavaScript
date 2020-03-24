@@ -427,7 +427,6 @@
     this.handlers = {};
     this.initTime = (new Date()).getTime();
     this.on('play', function () {
-      console.log("this.opt.currentSource",this.opt.currentSource)
       // 上报播放成功信息
       dclog({
         systemName: PLAY_MAIN,
