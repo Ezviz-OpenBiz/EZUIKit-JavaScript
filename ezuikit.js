@@ -481,6 +481,7 @@
     }
     var deviceSerial = '';
     var playUid = '';
+    var accessToken = '';
     var uuidReg = /[a-z0-9]{32}/;
     var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
     if(typeof playParams === 'string'){
@@ -497,9 +498,12 @@
       }else if(deviceSerialReg.test(url)){
         deviceSerial = url.match(deviceSerialReg)[0].split('/')[0];
       }
+      if(playParams.accessToken){
+        accessToken = playParams.accessToken;
+      }
     }
     // 获取appKey
-    request(domain + '/jssdk/ezopen/getAppInfo?uuid='+ playUid + "&deviceSerial=" + deviceSerial + "&channelNo=1",
+    request(domain + '/jssdk/ezopen/getAppInfo?uuid='+ playUid +'&accessToken='+ accessToken + "&deviceSerial=" + deviceSerial + "&channelNo=1",
     'GET',
     '',
     '',
