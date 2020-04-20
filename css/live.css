@@ -1,0 +1,83 @@
+body{
+  text-align: center;
+}
+.btn-container {
+text-align: center;
+margin-top: 30px;
+}
+.btn-container .btn-item{
+  display: inline-block;
+  width: 20%;
+  vertical-align: top;
+  cursor: pointer;
+  
+}
+.btn-container .btn-item img {
+  display: inline-block;
+  width: 60%;
+}
+.deck-container {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  /* border: 1px solid #1890ff; */
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 30px;
+  padding: 10px;
+
+  border-radius: 100%;
+}
+.deck {
+  position: relative;
+}
+.deck .top {
+  transform: rotate(-90deg);
+  width: 42px;
+}
+.deck .left {
+  transform: rotate(180deg);
+  left: 0;
+  top: 75px;
+  position: absolute;
+  width: 42px;
+}
+.deck .right {
+  transform: rotate(0deg);
+  right: 0;
+  top: 75px;
+  position: absolute;
+  width: 42px;
+}
+.deck .bottom {
+  transform: rotate(90deg);
+  position: absolute;
+  top: 150px;
+  left: 80px;
+  width: 42px;
+}
+.time-container {
+  margin: 0.5rem 20px;
+  /* margin-top: 30px; */
+  position: relative;
+}
+.mark-area-container {
+  z-index: -1;
+  display: inline-block;
+  width: 100%;
+  height: 1rem;
+  /* outline: 1px solid red; */
+  /* margin-bottom: 20px; */
+  position: absolute;
+  left: 0;
+  top:0;
+  text-align: left;
+  background: #f3f3f3;
+}
+.area {
+  display: inline-block;
+  height: 1rem;
+  vertical-align: top;
+  background: red;
+  width: 20px;
+  position: absolute;
+}
