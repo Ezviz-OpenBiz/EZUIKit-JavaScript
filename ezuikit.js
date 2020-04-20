@@ -164,7 +164,7 @@
     http_request.open(method, _url, true);
     // http_request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     var data = new FormData();
-    for (i in params) {
+    for (var i in params) {
       data.append(i, params[i]);
     }
     http_request.send(data);
