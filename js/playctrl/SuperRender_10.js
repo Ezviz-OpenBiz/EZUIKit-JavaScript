@@ -1,5 +1,8 @@
 ﻿"use strict";
-
+ //顶点着色器
+//attribute修饰符用于声明由浏览器（javascript）传输给顶点着色器的变量值；
+// vertexPos即我们定义的顶点坐标；
+// gl_Position是一个内建的传出变量。
 var vertexYUVShader = [
     'attribute vec4 vertexPos;',
     'attribute vec2 texturePos;',
@@ -11,7 +14,7 @@ var vertexYUVShader = [
         'textureCoord = texturePos;',
     '}'
     ].join('\n');
-
+    //像素着色器(yuv->rgb)
 var fragmentYUVShader = [
     'precision highp float;',
     'varying highp vec2 textureCoord;',
@@ -84,7 +87,7 @@ var fragmentYUVShader = [
         
         var gl = this.contextGL;
         
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER); //创建定点着色器
         gl.shaderSource(vertexShader, vertexShaderScript);
         gl.compileShader(vertexShader);
         if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
@@ -134,6 +137,24 @@ var fragmentYUVShader = [
     };
 
     /**
+     * 创建纹理
+     */
+    RenderManager.prototype.initTexture = function() {
+
+        var gl = this.contextGL;
+
+        var textureRef = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, textureRef);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        return textureRef;
+    };
+
+    /**
      * 初始化YUV纹理
      */
     RenderManager.prototype.initTextures = function() {
@@ -159,24 +180,6 @@ var fragmentYUVShader = [
         this.vTextureRef = vTextureRef;
         
         gl.useProgram(null);
-    };
-
-    /**
-     * 创建纹理
-     */
-    RenderManager.prototype.initTexture = function() {
-        
-        var gl = this.contextGL;
-
-        var textureRef = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, textureRef);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-
-        return textureRef;
     };
 
     /**
