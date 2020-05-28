@@ -1491,6 +1491,46 @@
           iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           szBasePath: playParams.decoderPath + '/js',
         });
+        _this.jSPlugin.JS_SetWindowControlCallback({
+          windowEventSelect: function (iWndIndex) {  //插件选中窗口回调
+              iWind = iWndIndex;
+              console.log(iWndIndex);
+          },
+          pluginErrorHandler: function (iWndIndex, iErrorCode, oError) {  //插件错误回调
+              console.log(iWndIndex, iErrorCode, oError);
+              if (playParams && playParams.handleError) {
+                playParams.handleError({ retcode: iErrorCode, msg: oError ? oError : '播放失败，请重试' });
+                _this.loadingStart();
+                _this.loadingSet(0,{text:'播放失败，请重试'});
+              }
+          },
+          windowEventOver: function (iWndIndex) {  //鼠标移过回调
+              //console.log(iWndIndex);
+          },
+          windowEventOut: function (iWndIndex) {  //鼠标移出回调
+              //console.log(iWndIndex);
+          },
+          windowEventUp: function (iWndIndex) {  //鼠标mouseup事件回调
+              //console.log(iWndIndex);
+          },
+          windowFullCcreenChange: function (bFull) {  //全屏切换回调
+              console.log(bFull);
+          },
+          firstFrameDisplay: function (iWndIndex, iWidth, iHeight) {  //首帧显示回调
+              console.log(iWndIndex, iWidth, iHeight);
+          },
+          performanceLack: function () {  //性能不足回调
+              
+          }
+      });
+      _this.jSPlugin.JS_SetOptions({
+          //bSupportSound: false  //是否支持音频，默认支持
+          bSupporDoubleClickFull: typeof playParams.isSupporDoubleClickFull === 'undefined' ? true : playParams.isSupporDoubleClickFull    //是否双击窗口全屏，默认支持
+          //bOnlySupportMSE: true  //只支持MSE
+          //bOnlySupportJSDecoder: true  //只支持JSDecoder
+      }).then(function () {
+          console.log("JS_SetOptions");
+      });
         // 注册全屏事件
         window.onresize = function () {
           _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
