@@ -691,7 +691,84 @@
                   request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
                   
                 } else {// 本地回放
+                  //alarm rec - start
+                  if(playParams.url.indexOf('alarmId')!== -1){
+                  console.log("进入alarmId回放")
+                  // 调用回放API接口获取回放片段 - start
+                  var alarmId = getQueryString('alarmId',realUrl)
+                  var recBegin = reRormatRecTime(getQueryString('begin',realUrl));
+                  var recEnd = reRormatRecTime(getQueryString('end',realUrl));
+                  var deviceSerial = getQueryString('serial',realUrl)
+                  var channelNo = getQueryString('chn',realUrl);
+
+                  var recSliceUrl = apiDomain + "/api/lapp/video/by/id";
+                  var recSliceParams = {
+                    accessToken: playParams.accessToken,
+                    // recType: 1,
+                    deviceSerial:deviceSerial,
+                    channelNo:channelNo,
+                    alarmId:alarmId,
+                    // startTime:recBegin,
+                    // endTime:recEnd
+                  }
+                  function recAPISuccess(data){
+                    if(data.code == 200 ) {
+                      var recSliceArr = [];
+                      if(data.data){
+                        recSliceArr = recSliceArrFun([data.data]);
+                        var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\','');
+                        realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\',''));
+                        console.log("realUrl",realUrl,data.data.recType);
+                        if(data.data.recType == 1){
+                          realUrl = realUrl.replace('/playback','/cloudplayback') 
+                        }else {
+                          realUrl = realUrl.replace('/cloudplayback','/playback')
+                         
+                        }
+                        _this.opt.sources[0] = realUrl;
+                        request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                      } else {
+                        _this.log('未找到录像片段', 'error');
+                        _this.loadingSet(0,{text:'获取设备播放地址'})
+                        resolve(JSON.stringify({code:-1,msg:"未找到录像片段"}))
+                        // reject('未找到录像片段');
+                      }
+                    } else {
+                      _this.log(data.msg, 'error');
+                      _this.loadingSet(0,{text:'获取设备播放地址'});
+                      resolve(JSON.stringify({code:-1,msg:"未找到录像片段"}))
+                      //reject('未找到录像片段');
+                    }
+                    function recSliceArrFun(data){
+                      var downloadPathArr = [];
+                      var currentDP = downloadPathArr.length
+                      data.forEach(function(item,index){
+                        if(downloadPathArr.length == 0 || (item.downloadPath !== downloadPathArr[downloadPathArr.length-1].downloadPath)){
+                          downloadPathArr.push({
+                            downloadPath: item.downloadPath,
+                            ownerId: item.ownerId,
+                            iStorageVersion: item.iStorageVersion,
+                            videoType: item.videoType,
+                            iPlaySpeed: 0,
+                            startTime: item.startTime,
+                            endTime: item.endTime
+                          })
+                        }else {
+                          downloadPathArr[downloadPathArr.length-1].endTime = item.endTime;
+                        }
+                      })
+                      console.log("downloadPathArr",downloadPathArr)
+                      return downloadPathArr;
+                    }
+                  }
+                  function recAPIError(err){
+                    console.log("获取回放片段错误")
+                  }
+                  request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
+                  }else {
+                  // arlar rec - end
                   request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                  }
                 }
 
               } else {
@@ -1275,7 +1352,8 @@
         if(playParams && playParams.env && playParams.env.wsUrl){
           websocketConnectUrl= playParams.env.wsUrl;
         }
-        var websocketStreamingParam = (url.indexOf('/live') === -1 ? url.indexOf('cloudplayback')!== -1 ? '/cloudplayback?' : '/playback?' : '/live?') + url.split('?')[1];
+        console.log("_this.opt.sources.",_this.opt.sources)
+        var websocketStreamingParam = (url.indexOf('/live') === -1 ? (url.indexOf('cloudplayback')!== -1 ? '/cloudplayback?' : '/playback?') : '/live?') + url.split('?')[1];
           // 本地回放仅支持主码流 - 2019-11-05 修订
           if(websocketStreamingParam.indexOf('/playback') !==-1){
             websocketStreamingParam = websocketStreamingParam.replace("stream=2",'stream=1');
