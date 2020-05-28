@@ -343,7 +343,9 @@
           if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
             initDecoder.then(function (data) {
               _this.loadingSet(0,{text:'初始化完成'});
-              _this.play(playParams);
+              setTimeout(function(){
+                _this.play(playParams);
+              },500)
             })
           }
         })
@@ -1342,7 +1344,7 @@
       var audioId = 0
       if(playParams && playParams.audioId){
         audioId = playParams.audioId;
-      }else if(playParams.audioId === -1) {
+      }else if(playParams && playParams.audioId === -1) {
         audioId = undefined;
       }
       var _this = this;
@@ -1481,8 +1483,8 @@
         /* decoder 属性配置 */
         _this.jSPlugin = new JSPlugin({
           szId: playParams.id,
-          iType: 2,
-          iMode: 0,
+          // iType: 2,
+          // iMode: 0,
           iWidth: playParams.width || 600,
           iHeight: playParams.height || 400,
           iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),

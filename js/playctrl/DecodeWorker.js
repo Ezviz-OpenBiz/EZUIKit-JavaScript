@@ -9,9 +9,8 @@
     const PLAYM4_AUDIO_FRAME = 100; // 音频帧
     const PLAYM4_VIDEO_FRAME = 101; // 视频帧
 
-    const HK_TRUE = 1;  // true
     const PLAYM4_OK = 1;
-    const PLAYM4_DECODE_ERROR=44 	// 解码失败
+    const PLAYM4_DECODE_ERROR = 44 	// 解码失败
     const PLAYM4_NOT_KEYFRAME = 48; 	// 非关键帧
     const PLAYM4_NEED_MORE_DATA = 31;   // 需要更多数据才能解析
     const PLAYM4_SYS_NOT_SUPPORT = 16; 	// 不支持
@@ -25,6 +24,10 @@
     const PLAYM4_BUF_OVER_ENCODER_ERROR                 = 77;  //音频编码相关buffer满
     const PLAYM4_NEED_MORE_DATA_ENCODER_ERROR           = 78;  //音频编码需要更多数据进行编码
     const PLAYM4_CALL_ORDER_ENCODER_ERROR               = 79;  //音频编码调用顺序错误
+
+    const PLAYM4_ITYPE_DECODE_ERROR                     =100;   //定位后送进来的第一帧I帧解码失败
+    const PLAYM4_FIRST_FRAME_NOT_ICURRENT               =101;   //定位后送进来的第一帧不是定位帧所在的I帧（Ni>Mp）
+
 
     importScripts('Decoder.js');
     Module.postRun.push(function () {
@@ -48,18 +51,40 @@
         switch (eventData.command)
         {
 			case "printLog":
-                bWorkerPrintLog=true;
-				res = Module._SetPrintLogFlag();
-				if (res !== HK_TRUE)
+			    let downloadFlag=eventData.data;
+			    if(downloadFlag===true)
                 {
-					console.log("DecodeWorker.js: PlayerSDK print log failed");
+                    bWorkerPrintLog=true;
+                    res = Module._SetPrintLogFlag(downloadFlag);
+                }
+			    else
+                {
+                    bWorkerPrintLog=false;
+                    res = Module._SetPrintLogFlag(downloadFlag);
+                }
+
+				if (res !== PLAYM4_OK)
+                {
+					console.log("DecodeWorker.js: PlayerSDK print log failed,res"+res);
                     postMessage({'function': "printLog", 'errorCode': res});
                 }
 				break;
+            case "SetPlayPosition":
+                let nFrameNumOrTime=eventData.data;
+                let enPosType=eventData.type;
+                res = Module._SetPlayPosition(nFrameNumOrTime,enPosType);
+                if (res !== PLAYM4_OK)
+                {
+                    postMessage({'function': "SetPlayPosition", 'errorCode': res});
+                    return;
+                }
+                //有没有buffer需要清除
+
+                break;
             case "SetStreamOpenMode":
                 iStreamMode = eventData.data;
                 res = Module._SetStreamOpenMode(iStreamMode);
-                if (res !== HK_TRUE)
+                if (res !== PLAYM4_OK)
                 {
                     postMessage({'function': "SetStreamOpenMode", 'errorCode': res});
                     return;
@@ -79,7 +104,7 @@
                 aHead.set(eventData.data);
                 res = Module._OpenStream(pHead, iHeadLen, eventData.bufPoolSize);
                 postMessage({'function': "OpenStream", 'errorCode': res});
-                if (res !== HK_TRUE)
+                if (res !== PLAYM4_OK)
                 {
                     //释放内存
                     Module._free(pHead);
@@ -102,7 +127,7 @@
                 tempBuf = null;
 
                 res = Module._InputData(pHead, iHeadLen + 4);
-                if (res !== HK_TRUE)
+                if (res !== PLAYM4_OK)
                 {
                     postMessage({'function': "InputData", 'errorCode': res});
                     Module._free(pHead);
@@ -151,7 +176,7 @@
 						console.log("<<<Worker:InputData result:"+ +res);
 					}
 					
-                    if (res !== HK_TRUE)
+                    if (res !== PLAYM4_OK)
                     {
                         if (res === 98)
                         {
@@ -160,7 +185,7 @@
                         postMessage({'function': "InputData", 'errorCode': res});
                     }
                     Module._free(pInputData);
-                    pData = null;
+                    pInputData = null;
                 }
 
                 /////////////////////
@@ -173,9 +198,6 @@
                 {
                     
                     var ret = getFrameData(funGetFrameData);
-
-                    // var ret = getFrameData();
-
                     // 直到获取视频帧或数据不足为止
                     if (PLAYM4_VIDEO_FRAME === ret || PLAYM4_NEED_MORE_DATA === ret)
                     {
@@ -196,7 +218,7 @@
                 aKeyData.set(new Uint8Array(bufData));
 
                 res = Module._SetSecretKey(eventData.nKeyType, pKeyData, keyLen, nKeySize);
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "SetSecretKey", 'errorCode': res});
                     Module._free(pKeyData);
                     pKeyData = null;
@@ -245,7 +267,7 @@
 
                 res = Module._GetBMP(pDataYUV, nYUVSize, pBmpData, pBmpSize,
                     oBMPCropRect.left, oBMPCropRect.top, oBMPCropRect.right, oBMPCropRect.bottom);
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "GetBMP", 'errorCode': res});
                     Module._free(pDataYUV);
                     pDataYUV = null;
@@ -264,7 +286,7 @@
                 aBmpData.set(Module.HEAPU8.subarray(pBmpData, pBmpData + nBmpDataSize));
 
                 postMessage({'function': "GetBMP", 'data': aBmpData, 'errorCode': res}, [aBmpData.buffer]);
-
+                aBmpData=null;
                 if (pDataYUV != null) {
                     Module._free(pDataYUV);
                     pDataYUV = null;
@@ -318,7 +340,7 @@
 
                 res = Module._GetJPEG(pDataYUV1, nYUVSize1, pJpegData, pJpegSize,
                     oJpegCropRect.left, oJpegCropRect.top, oJpegCropRect.right, oJpegCropRect.bottom);
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "GetJPEG", 'errorCode': res});
                     if (pJpegData != null) {
                         Module._free(pJpegData);
@@ -346,7 +368,7 @@
 
                 postMessage({'function': "GetJPEG", 'data': aJpegData, 'errorCode': res}, [aJpegData.buffer]);
 
-                ajpegSizeData = null;
+                nJpegSize = null;
                 aJpegData = null;
 
                 if (pDataYUV1 != null) {
@@ -366,7 +388,7 @@
             case "SetDecodeFrameType":
                 var nFrameType = eventData.data;
                 res = Module._SetDecodeFrameType(nFrameType);
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "SetDecodeFrameType", 'errorCode': res});
                     return;
                 }
@@ -379,7 +401,7 @@
                 var bEnable = eventData.bEnable;
 
                 res = Module._SetDisplayRegion(nRegionNum, srcRect, hDestWnd, bEnable);
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "DisplayRegion", 'errorCode': res});
                     return;
                 }
@@ -387,7 +409,7 @@
 
             case "CloseStream":
                 res = Module._CloseStream();
-                if (res !== HK_TRUE) {
+                if (res !== PLAYM4_OK) {
                     postMessage({'function': "CloseStream", 'errorCode': res});
                     return;
                 }
@@ -525,7 +547,9 @@
         {
             postMessage({'function':"GetAudEncodeData",'data':null,'dataSize':-1, 'errorCode': res});
         }
-
+        oFrameInfo=null;
+        pEncodeAud=null;
+        aEncodeAudData=null;
         return res;
     }
 
@@ -541,7 +565,7 @@
             console.log("<<<Worker: getFrameData Result:"+res);
         }
 
-        if (res === HK_TRUE)
+        if (res === PLAYM4_OK)
         {
             var oFrameInfo = Module._GetFrameInfo();
 
@@ -553,7 +577,6 @@
                     {
                         return -1;
                     }
-
                     var pPCM = Module._GetFrameBuffer();
                     // var audioBuf = new ArrayBuffer(iSize);
                     var aPCMData = new Uint8Array(iSize);
@@ -569,7 +592,6 @@
 
                     oFrameInfo = null;
                     pPCM = null;
-                    audioBuf = null;
                     aPCMData = null;
                     return PLAYM4_AUDIO_FRAME;
 
@@ -602,7 +624,6 @@
 
                     oFrameInfo = null;
                     pYUV = null;
-                    buf = null;
                     aYUVData = null;
                     return PLAYM4_VIDEO_FRAME;
 
@@ -620,27 +641,38 @@
                     });
                     return PLAYM4_SYS_NOT_SUPPORT;
             }
-        } else {
-            if (PLAYM4_NEED_MORE_DATA === res || PLAYM4_SYS_NOT_SUPPORT === res) {
-                postMessage({
-                    'function': "GetFrameData", 'type': "", 'data': null,
-                    'dataLen': -1, 'osd': 0, 'frameInfo': null, 'errorCode': res
-                });
-            }
-            else if(PLAYM4_DECODE_ERROR===res)
+        }
+        else {
+            //解码失败返回裸数据
+            if(PLAYM4_DECODE_ERROR===res)
             {
-                ///*下载裸数据*///
                 var rawInfo=Module._GetRawDataInfo();
                 var pRawData = Module._GetRawDataBuffer();
-                console.log("rawDataLen:"+rawInfo.isize);
                 var aRawData = new Uint8Array(rawInfo.isize);
                 aRawData.set(Module.HEAPU8.subarray(pRawData, pRawData + rawInfo.isize));
                 postMessage({
                     'function': "GetRawData", 'type': "", 'data':aRawData.buffer,
                     'rawDataLen': rawInfo.isize, 'osd': 0, 'frameInfo': null, 'errorCode': res
                 });
+                rawInfo=null;
+                pRawData=null;
+                aRawData=null;
             }
-
+            //定位返回的错误
+            if(PLAYM4_FIRST_FRAME_NOT_ICURRENT===res|| PLAYM4_ITYPE_DECODE_ERROR===res)
+            {
+                postMessage({
+                    'function': "GetFrameData", 'type': "", 'data': null,
+                    'dataLen': -1, 'osd': 0, 'frameInfo': null, 'errorCode': res
+                });
+            }
+            //需要更多数据
+            if (PLAYM4_NEED_MORE_DATA === res || PLAYM4_SYS_NOT_SUPPORT === res) {
+                postMessage({
+                    'function': "GetFrameData", 'type': "", 'data': null,
+                    'dataLen': -1, 'osd': 0, 'frameInfo': null, 'errorCode': res
+                });
+            }
             return res;
         }
     }
