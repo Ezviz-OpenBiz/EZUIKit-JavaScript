@@ -1267,7 +1267,7 @@
       var audioId = 0
       if(playParams && playParams.audioId){
         audioId = playParams.audioId;
-      }else if(playParams.audioId === -1) {
+      }else if(playParams && playParams.audioId === -1) {
         audioId = undefined;
       }
       var _this = this;
