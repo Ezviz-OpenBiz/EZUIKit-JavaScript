@@ -194,6 +194,9 @@
 
     // 修订 - 支持JS Decoder 允许非字符串配置项
     if (typeof playParams === 'object' && playParams.hasOwnProperty('decoderPath')) {
+      if( typeof playParams.audioId === 'undefined'){
+        playParams["audioId"] = 0;
+      }
       this.playParams = playParams;
       /* 校验播放器配置参数合法性 */
       var oS=document.createElement('style');
@@ -348,9 +351,11 @@
             var icon = '';
             switch (type){
               case 'retry':
-                icon = '<svg t="1590929825474" class="icon" viewBox="0 0 1316 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1144" width="32" height="32"><path d="M760.458159 274.773333l-55.296-9.329777a38.741333 38.741333 0 0 0-12.856889 76.344888l193.308444 32.597334c1.991111 0.113778 1.991111 0.113778 2.844445 0 2.275556 0.227556 4.266667 0.113778 7.850666-0.284445l0.682667-0.056889a28.216889 28.216889 0 0 0 5.632-0.967111c1.080889 0 1.080889 0 3.185778-0.568889a15.530667 15.530667 0 0 0 4.039111-2.332444l1.137778-0.796444 0.796444-0.398223a28.444444 28.444444 0 0 0 4.152889-2.730666 37.091556 37.091556 0 0 0 6.542222-6.826667l0.796445-0.967111c1.080889-1.422222 1.080889-1.422222 2.161778-3.128889a37.432889 37.432889 0 0 0 3.697777-9.557333c0.568889-1.194667 0.568889-1.194667 1.137778-3.128889 0.113778-1.763556 0.113778-1.763556 0-2.503111v0.910222a36.579556 36.579556 0 0 0-0.341333-10.24l-0.113778-0.967111a22.755556 22.755556 0 0 0-0.682667-3.982222c0-1.080889 0-1.080889-0.568889-3.128889L860.070603 138.979556a38.798222 38.798222 0 0 0-49.777778-22.755556 38.798222 38.798222 0 0 0-22.755555 49.777778l16.270222 43.804444A397.880889 397.880889 0 0 0 544.507937 113.777778C324.916825 113.777778 146.285714 292.408889 146.285714 512s178.631111 398.222222 398.222223 398.222222 398.222222-178.631111 398.222222-398.222222a38.684444 38.684444 0 1 0-77.368889 0c0 176.924444-143.928889 320.853333-320.853333 320.853333S223.654603 688.924444 223.654603 512 367.583492 191.146667 544.507937 191.146667c80.099556 0 157.070222 29.980444 215.950222 83.626666z" fill="#ffffff" p-id="1145"></path><path d="M32.507937 0h1024v1024H32.507937z" fill="#ffffff" fill-opacity="0" p-id="1146"></path></svg>';
+                icon = '<svg t="1590935684181" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1623" width="32" height="32"><path d="M972.8 102.4c-30.72 0-51.2 20.48-51.2 51.2v51.2c-51.2-71.68-122.88-128-204.8-158.72C460.8-66.56 158.72 51.2 46.08 307.2S51.2 865.28 307.2 977.92 865.28 972.8 977.92 716.8H972.8c0-30.72-20.48-51.2-51.2-51.2s-51.2 20.48-51.2 51.2h-5.12c-46.08 76.8-112.64 138.24-199.68 174.08-209.92 87.04-445.44-15.36-532.48-225.28S148.48 215.04 358.4 133.12c189.44-81.92 404.48 0 506.88 174.08H768c-30.72 0-51.2 20.48-51.2 51.2s20.48 51.2 51.2 51.2h204.8c30.72 0 51.2-20.48 51.2-51.2V153.6c0-30.72-20.48-51.2-51.2-51.2z" p-id="1624" fill="#ffffff"></path></svg>';
+                loadingDOM.style.cursor = 'pointer';
                 loadingDOM.onclick = function(){
                   console.log("点击重试",i);
+                  // _this.loadingStart();
                   _this.play(i);
                 }
                 break;
@@ -1406,13 +1411,6 @@
       }
     } else if (!!this.jSPlugin) {
       var playParams = this.playParams;
-      //   // 音频自动播放
-      var audioId = 0
-      if(playParams && playParams.audioId){
-        audioId = playParams.audioId;
-      }else if(playParams && playParams.audioId === -1) {
-        audioId = undefined;
-      }
       var _this = this;
       function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
@@ -1462,11 +1460,17 @@
               _this.loadingEnd(index);
               // 默认开启声音
               // 默认开启第一路声音
-              if (typeof(audioId) !== "undefined" && audioId === index) {
+              if (playParams.audioId == 0) {
                 _this.log("默认开启第1路声音");
                 setTimeout(function(){
                   var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
-                  openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
+                  console.log("openSoundRT",openSoundRT)
+                  openSoundRT.then(function(data){
+                    _this.log('开启声音成功',data)
+                  })
+                  .catch(function(err){
+                    _this.log('开启声音失败','error',err)
+                  })
                 }, 100)
               }
               // 播放成功回调
