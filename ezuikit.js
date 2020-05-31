@@ -179,6 +179,8 @@
   function getBrowserInfo() {var Sys = {}; var ua = navigator.userAgent.toLowerCase();var re = /(msie|firefox|chrome|opera|version).*?([\d.]+)/;var m = ua.match(re);try{Sys.browser = m[1].replace(/version/, "'safari"); Sys.ver = m[2];}catch(e){console.log("getBrowserInfo fail.")}return Sys;}
   /** 是否为JSON格式字符串 */
   function isJSON(str) {if (typeof str == 'string') {try {var obj=JSON.parse(str);if(typeof obj == 'object' && obj ){return true;}else{return false;}} catch(e) {return false;}}console.log('It is not a string!')}
+  /** insertAfter */
+  function insertAfter( newElement, targetElement ){var parent = targetElement.parentNode;if( parent.lastChild == targetElement ){parent.appendChild( newElement );}else{parent.insertBefore( newElement, targetElement.nextSibling );}} 
   
   var EZUIPlayer = function (playParams) {
     if (!isModernBrowser) {
@@ -192,6 +194,7 @@
 
     // 修订 - 支持JS Decoder 允许非字符串配置项
     if (typeof playParams === 'object' && playParams.hasOwnProperty('decoderPath')) {
+      this.playParams = playParams;
       /* 校验播放器配置参数合法性 */
       var oS=document.createElement('style');
       document.getElementsByTagName("head")[0].appendChild(oS);
@@ -215,15 +218,6 @@
         var oS=document.createElement('style');
         document.getElementsByTagName("head")[0].appendChild(oS);
         oS.innerHTML= '@keyframes antRotate {to {transform: rotate(400deg);transform-origin:50% 50%;}} .loading {display: inline-block;z-index: 1000;-webkit-animation: antRotate 1s infinite linear;animation: antRotate 1s infinite linear;}';
-        /**DOM 操作方法 */
-        function insertAfter( newElement, targetElement ){
-          var parent = targetElement.parentNode;
-          if( parent.lastChild == targetElement ){
-              parent.appendChild( newElement );
-          }else{
-              parent.insertBefore( newElement, targetElement.nextSibling );
-          }
-        } 
         if(playParams && playParams.id){
           var domId = playParams.id;
           var domElement = document.getElementById(domId);
@@ -300,6 +294,75 @@
           }
         }
       }
+      this.loadingSetIcon = function(i,type){
+        var _this = this;
+        if(playParams && playParams.id){
+          var domId = playParams.id;
+          var domElement = document.getElementById(domId);
+          var windowWidth = domElement.offsetWidth;
+          var windowHeight = domElement.offsetHeight || playParams.height || 400;
+          var offsetTop = domElement.offsetTop;
+          var offsetLeft = domElement.offsetLeft;
+          // 先执行清空loading
+          if(document.getElementById('loading-id-0')){
+            document.getElementById('loading-id-0').parentNode.removeChild(document.getElementById('loading-id-0'))
+          }
+          var loadingContainerDOM = document.createElement('div');
+          loadingContainerDOM.setAttribute('id','loading-id-0');
+          var style = 'position:absolute;outline:none;'
+          style += 'width: 0px;'
+          style += 'height: 0px;'
+          style += 'top:' + offsetTop + 'px;'
+          style += 'left:' + offsetLeft + 'px;'
+
+          loadingContainerDOM.setAttribute('style',style);
+          var loadingContainer = document.getElementById("loading-id-0");
+          loadingContainerDOM.style.height = windowHeight;
+
+          loadingContainerDOM.setAttribute('class','loading-container'); 
+          insertAfter( loadingContainerDOM,domElement );
+
+          var splitBasis = playParams.splitBasis || 1;
+          var windowLength = playParams.url.split(",").length;
+            var loadingContainer = document.createElement('div');
+            var loadingStatusDOM = document.createElement('div');
+            loadingContainer.setAttribute('class','loading-item');
+            loadingContainer.setAttribute('id','loading-item-' + i);
+            //loadingContainer.setAttribute('style','display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;position:absolute');
+            var style = 'display:inline-flex;flex-direction:column;justify-content:center;align-items: center;width:'+(windowWidth / splitBasis)+'px;height:'+(windowHeight /splitBasis )+'px;outline:none;vertical-align: top;position:absolute;';
+            style += ('left:' + calLoadingPostion(windowHeight,windowWidth,splitBasis,i).left + 'px;');
+            style += ('top:' + calLoadingPostion(windowHeight,windowWidth,splitBasis,i).top + 'px;');
+            loadingContainer.setAttribute('style',style);
+            function calLoadingPostion(windowHeight,windowWidth,splitBasis,i){
+              var top = parseInt(i / splitBasis,10)*(windowHeight/splitBasis);
+              var left = (i % splitBasis) * (windowWidth/splitBasis);
+              return {
+                top:top,
+                left:left
+              }
+            }
+            var loadingDOM = document.createElement('div');
+            loadingStatusDOM.innerHTML="";
+            loadingStatusDOM.style.color="#fff";
+            loadingDOM.setAttribute('class',type);
+            var icon = '';
+            switch (type){
+              case 'retry':
+                icon = '<svg t="1590929825474" class="icon" viewBox="0 0 1316 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1144" width="32" height="32"><path d="M760.458159 274.773333l-55.296-9.329777a38.741333 38.741333 0 0 0-12.856889 76.344888l193.308444 32.597334c1.991111 0.113778 1.991111 0.113778 2.844445 0 2.275556 0.227556 4.266667 0.113778 7.850666-0.284445l0.682667-0.056889a28.216889 28.216889 0 0 0 5.632-0.967111c1.080889 0 1.080889 0 3.185778-0.568889a15.530667 15.530667 0 0 0 4.039111-2.332444l1.137778-0.796444 0.796444-0.398223a28.444444 28.444444 0 0 0 4.152889-2.730666 37.091556 37.091556 0 0 0 6.542222-6.826667l0.796445-0.967111c1.080889-1.422222 1.080889-1.422222 2.161778-3.128889a37.432889 37.432889 0 0 0 3.697777-9.557333c0.568889-1.194667 0.568889-1.194667 1.137778-3.128889 0.113778-1.763556 0.113778-1.763556 0-2.503111v0.910222a36.579556 36.579556 0 0 0-0.341333-10.24l-0.113778-0.967111a22.755556 22.755556 0 0 0-0.682667-3.982222c0-1.080889 0-1.080889-0.568889-3.128889L860.070603 138.979556a38.798222 38.798222 0 0 0-49.777778-22.755556 38.798222 38.798222 0 0 0-22.755555 49.777778l16.270222 43.804444A397.880889 397.880889 0 0 0 544.507937 113.777778C324.916825 113.777778 146.285714 292.408889 146.285714 512s178.631111 398.222222 398.222223 398.222222 398.222222-178.631111 398.222222-398.222222a38.684444 38.684444 0 1 0-77.368889 0c0 176.924444-143.928889 320.853333-320.853333 320.853333S223.654603 688.924444 223.654603 512 367.583492 191.146667 544.507937 191.146667c80.099556 0 157.070222 29.980444 215.950222 83.626666z" fill="#ffffff" p-id="1145"></path><path d="M32.507937 0h1024v1024H32.507937z" fill="#ffffff" fill-opacity="0" p-id="1146"></path></svg>';
+                loadingDOM.onclick = function(){
+                  console.log("点击重试",i);
+                  _this.play(i);
+                }
+                break;
+            }
+            
+            loadingDOM.innerHTML = icon;
+            loadingContainer.appendChild(loadingDOM);
+            loadingContainer.appendChild(loadingStatusDOM);
+            loadingContainerDOM.appendChild(loadingContainer)
+          
+        }
+      } 
       this.loadingEnd = function(index){
         var loadingItemContainerDOM = document.getElementById('loading-item-' + index);
         if(loadingItemContainerDOM){
@@ -340,12 +403,14 @@
           var initDecoder = _this.initDecoder(playParams);
           // 初始化播放器
           _this.loadingSet(0,{text:'初始化播放器...'});
-          if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
+          if (isPromise(initDecoder)) {
             initDecoder.then(function (data) {
               _this.loadingSet(0,{text:'初始化完成'});
-              setTimeout(function(){
-                _this.play(playParams);
-              },500)
+              if(playParams.autoplay !== false){
+                setTimeout(function(){
+                  _this.play();
+                },500)
+              }
             })
           }
         })
@@ -1323,7 +1388,7 @@
     }
   }
 
-  EZUIPlayer.prototype.play = function (playParams) {
+  EZUIPlayer.prototype.play = function (i) {
     //var index = params.index;
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
@@ -1340,7 +1405,8 @@
         this.video.play();
       }
     } else if (!!this.jSPlugin) {
-        // 音频自动播放
+      var playParams = this.playParams;
+      //   // 音频自动播放
       var audioId = 0
       if(playParams && playParams.audioId){
         audioId = playParams.audioId;
@@ -1351,9 +1417,9 @@
       function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
         // console.log("playParams,",playParams,playParams.env.wsUrl)
-        if(playParams && playParams.env && playParams.env.wsUrl){
-          websocketConnectUrl= playParams.env.wsUrl;
-        }
+        // if(playParams && playParams.env && playParams.env.wsUrl){
+        //   websocketConnectUrl= playParams.env.wsUrl;
+        // }
         console.log("_this.opt.sources.",_this.opt.sources)
         var websocketStreamingParam = (url.indexOf('/live') === -1 ? (url.indexOf('cloudplayback')!== -1 ? '/cloudplayback?' : '/playback?') : '/live?') + url.split('?')[1];
           // 本地回放仅支持主码流 - 2019-11-05 修订
@@ -1363,9 +1429,8 @@
           // 本地回放仅支持主码流
         return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
       }
-      if (!playParams || typeof playParams.index === 'undefined') {
-        _this.opt.sources.forEach(function (item, index) {
-          if(getQueryString('dev',item)){
+      _this.opt.sources.forEach(function (item, index) {
+        if(getQueryString('dev',item)){
           _this.log("开始播放, 第" + (index+1)+ '路，' + '地址：' + item);
           _this.loadingSet(index,{text:'准备播放...',color:'#fff'})
           // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
@@ -1377,94 +1442,92 @@
           var playST = new Date().getTime();
           _this.jSPlugin.JS_Play(getPlayParams(item).websocketConnectUrl, { playURL: getPlayParams(item).websocketStreamingParam }, index).then(function () {
             _this.log('播放成功，当前播放第' + (index + 1) + '路');
-            _this.loadingSet(index,{text:'播放成功...'});
-            //单次播放日志上报
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 2,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playST,
-              rt: 200,
-            })
-            // 播放成功
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 99,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playStartTime,
-              rt: 200,
-            })
-            _this.loadingEnd(index);
-            // 默认开启声音
-            // 默认开启第一路声音
-            if (typeof(audioId) !== "undefined" && audioId === index) {
-              _this.log("默认开启第1路声音");
-              setTimeout(function(){
-                var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
-                openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
-              }, 100)
-            }
-            // 播放成功回调
-            if (playParams && playParams.handleSuccess) {
-              playParams.handleSuccess();
-            }
-            // 
-            // 播放成功日志上报
-            var PlTp = 1;
-            if(playParams && playParams.url){
-              if(playParams.url.indexOf('rec')!== -1){
-                PlTp = 2;
+              _this.loadingSet(index,{text:'播放成功...'});
+              //单次播放日志上报
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 2,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playST,
+                rt: 200,
+              })
+              // 播放成功
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 99,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playStartTime,
+                rt: 200,
+              })
+              _this.loadingEnd(index);
+              // 默认开启声音
+              // 默认开启第一路声音
+              if (typeof(audioId) !== "undefined" && audioId === index) {
+                _this.log("默认开启第1路声音");
+                setTimeout(function(){
+                  var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
+                  openSoundRT === 0 ? _this.log('开启声音成功') : _this.log('开启声音失败','error');
+                }, 100)
               }
-            }
-            dclog({
-              systemName: PLAY_MAIN,
-              playurl: encodeURIComponent(item),
-              Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
-              Enc: 0,  // 0 不加密 1 加密
-              PlTp: PlTp,  // 1 直播 2 回放
-              Via: 2,  // 2 服务端取流
-              ErrCd: 0,
-              OpId: uuid(),
-              Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
-              Serial: getQueryString('dev',item),
-              Channel: getQueryString('chn',item),
-            });
-          }, function (err) {
-            _this.log('播放失败' + JSON.stringify(err), 'error');
-            var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode });
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 2,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playStartTime,
-              rt: err.oError ? err.oError.errorCode : 500,
-              msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+              // 播放成功回调
+              if (playParams && playParams.handleSuccess) {
+                playParams.handleSuccess();
+              }
+              // 
+              // 播放成功日志上报
+              var PlTp = 1;
+              if(playParams && playParams.url){
+                if(playParams.url.indexOf('rec')!== -1){
+                  PlTp = 2;
+                }
+              }
+              dclog({
+                systemName: PLAY_MAIN,
+                playurl: encodeURIComponent(item),
+                Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
+                Enc: 0,  // 0 不加密 1 加密
+                PlTp: PlTp,  // 1 直播 2 回放
+                Via: 2,  // 2 服务端取流
+                ErrCd: 0,
+                OpId: uuid(),
+                Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
+                Serial: getQueryString('dev',item),
+                Channel: getQueryString('chn',item),
+              });
+            }, function (err) {
+              _this.log('播放失败' + JSON.stringify(err), 'error');
+              var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode });
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 2,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playStartTime,
+                rt: err.oError ? err.oError.errorCode : 500,
+                msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+              })
+              var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
+              _this.loadingSet(index,{text:msg,color:'red'});
+              dclog({
+                systemName: PLAY_MAIN,
+                playurl: encodeURIComponent(item),
+                cost: -1,
+                ErrCd: (err && err.oError && err.oError.errorCode && (err.oError.errorCode+"").substr(-4)) || -1,
+                Via: 2,
+                OpId: uuid(),
+                Serial: getQueryString('dev',item),
+                Channel: getQueryString('chn',item),
+              });
+              if (playParams && playParams.handleError) {
+                var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
+                playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
+              }
             })
-            var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
-            _this.loadingSet(index,{text:msg,color:'red'});
-            dclog({
-              systemName: PLAY_MAIN,
-              playurl: encodeURIComponent(item),
-              cost: -1,
-              ErrCd: (err && err.oError && err.oError.errorCode && (err.oError.errorCode+"").substr(-4)) || -1,
-              Via: 2,
-              OpId: uuid(),
-              Serial: getQueryString('dev',item),
-              Channel: getQueryString('chn',item),
-            });
-            if (playParams && playParams.handleError) {
-              var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
-              playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
-            }
-          })
         } else {
-
           if(isJSON(item) && JSON.parse(item).msg){
             _this.loadingSet(index,{text:JSON.parse(item).msg,color:'red'})
           }
         }
-        })
-      }
+      })
     }
 
   };
@@ -1500,8 +1563,8 @@
               console.log(iWndIndex, iErrorCode, oError);
               if (playParams && playParams.handleError) {
                 playParams.handleError({ retcode: iErrorCode, msg: oError ? oError : '播放失败，请重试' });
-                _this.loadingStart();
-                _this.loadingSet(0,{text:'播放失败，请重试'});
+                _this.loadingSetIcon(iWndIndex,'retry');
+                _this.loadingSet(iWndIndex,{text:'播放失败，请重试'});
               }
           },
           windowEventOver: function (iWndIndex) {  //鼠标移过回调
