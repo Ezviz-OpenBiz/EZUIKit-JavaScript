@@ -414,7 +414,7 @@
               if(playParams.autoplay !== false){
                 setTimeout(function(){
                   _this.play();
-                },500)
+                },1000)
               }
             })
           }
