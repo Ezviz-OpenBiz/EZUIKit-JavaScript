@@ -400,33 +400,26 @@
       /** 根据播放参数获取真实播放地址 */
       this.loadingStart();
       playStartTime = new Date().getTime();
-
-      var getRealUrl = this.getRealUrl(playParams);
-      /**是否自动播放 */
-      if (isPromise(getRealUrl)) {
-        getRealUrl.then(function (data) {
-          var initDecoder = _this.initDecoder(playParams);
-          // 初始化播放器
-          _this.loadingSet(0,{text:'初始化播放器...'});
-          if (isPromise(initDecoder)) {
-            initDecoder.then(function (data) {
-              _this.loadingSet(0,{text:'初始化完成'});
+      var initDecoder = _this.initDecoder(playParams);
+      // 初始化播放器
+      _this.loadingSet(0,{text:'初始化播放器...'});
+      if (isPromise(initDecoder)) {
+        initDecoder.then(function (data) {
+          _this.loadingSet(0,{text:'初始化完成'});
+          var getRealUrl = _this.getRealUrl(playParams);
+          /**是否自动播放 */
+          if (isPromise(getRealUrl)) {
+            getRealUrl.then(function (data) {
               if(playParams.autoplay !== false){
                 setTimeout(function(){
                   _this.play();
-                },1000)
-              }
+                },2000)
+              }   
             })
+            .catch(function (err) {
+            });
           }
         })
-          .catch(function (err) {
-            var initDecoder = _this.initDecoder(playParams);
-            if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
-              initDecoder.then(function () {
-                // _this.play({ handleError: playParams.handleError });
-              })
-            }
-          });
       }
     } else {
       var domain = "https://open.ys7.com";
