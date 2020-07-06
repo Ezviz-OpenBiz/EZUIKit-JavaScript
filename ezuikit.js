@@ -1556,6 +1556,14 @@
       }
     } else if (!!this.jSPlugin) {
       var playParams = this.playParams;
+
+      var audioId = 0
+      if(playParams && playParams.audioId){
+        audioId = playParams.audioId;
+      }else if(playParams && playParams.audioId === -1) {
+        audioId = undefined;
+      }
+
       var _this = this;
       function getPlayParams(url) {
         var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
@@ -1620,7 +1628,7 @@
             _this.loadingEnd(index);
             // 默认开启声音
             // 默认开启第一路声音
-            if (playParams.audioId == 0) {
+            if (typeof(audioId) !== "undefined" && audioId === index) {
               _this.log("默认开启第1路声音");
               setTimeout(function () {
                 var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
@@ -1718,6 +1726,10 @@
           iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           szBasePath: playParams.decoderPath + '/js',
+          oStyle: {
+            border: "none",
+            background: "#000000"
+          }
         });
         _this.jSPlugin.JS_SetWindowControlCallback({
           windowEventSelect: function (iWndIndex) {  //插件选中窗口回调
@@ -1742,7 +1754,7 @@
           //bSupportSound: false  //是否支持音频，默认支持
           bSupporDoubleClickFull: typeof playParams.isSupporDoubleClickFull === 'undefined' ? true : playParams.isSupporDoubleClickFull,    //是否双击窗口全屏，默认支持
           //bOnlySupportMSE: true  //只支持MSE
-          bOnlySupportJSDecoder: true  //只支持JSDecoder
+          bOnlySupportJSDecoder: (typeof playParams.useMSE === 'undefined' || playParams.useMSE === false)  ? true : false,    //是否强制使用jsdecoder
         }).then(function () {
           console.log("JS_SetOptions");
         });
