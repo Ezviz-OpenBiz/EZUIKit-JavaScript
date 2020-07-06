@@ -406,7 +406,7 @@
       /**是否自动播放 */
       if (isPromise(getRealUrl)) {
         getRealUrl.then(function (data) {
-          var initDecoder = _this.initDecoder(playParams);
+			var initDecoder = _this.initDecoder(playParams);
           // 初始化播放器
           _this.loadingSet(0, { text: '初始化播放器...' });
           if (isPromise(initDecoder)) {
@@ -418,17 +418,11 @@
                 }, 1000)
               }
             })
+            .catch(function (err) {
+            });
           }
         })
-          .catch(function (err) {
-            var initDecoder = _this.initDecoder(playParams);
-            if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
-              initDecoder.then(function () {
-                // _this.play({ handleError: playParams.handleError });
-              })
             }
-          });
-      }
     } else {
       var domain = "https://open.ys7.com";
       var elementID = '';
