@@ -156,8 +156,12 @@
     http_request.onreadystatechange = function () {
       if (http_request.readyState == 4) {
         if (http_request.status == 200) {
-          var _data = JSON.parse(http_request.responseText);
-          success(_data);
+          if (isJSON(http_request.responseText)) {
+            var _data = JSON.parse(http_request.responseText);
+            success(_data);
+          } else {
+            success(http_request.responseText)
+          }
         }
       }
     };
@@ -406,23 +410,27 @@
       /**是否自动播放 */
       if (isPromise(getRealUrl)) {
         getRealUrl.then(function (data) {
-			var initDecoder = _this.initDecoder(playParams);
+          var initDecoder = _this.initDecoder(playParams);
           // 初始化播放器
           _this.loadingSet(0, { text: '初始化播放器...' });
           if (isPromise(initDecoder)) {
             initDecoder.then(function (data) {
               _this.loadingSet(0, { text: '初始化完成' });
-              if (playParams.autoplay !== false) {
-                setTimeout(function () {
-                  _this.play();
-                }, 1000)
-              }
+              setTimeout(function () {
+                _this.play(playParams);
+              }, 1500)
             })
-            .catch(function (err) {
-            });
           }
         })
+          .catch(function (err) {
+            var initDecoder = _this.initDecoder(playParams);
+            if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
+              initDecoder.then(function () {
+                // _this.play({ handleError: playParams.handleError });
+              })
             }
+          });
+      }
     } else {
       var domain = "https://open.ys7.com";
       var elementID = '';
@@ -614,141 +622,144 @@
     /** jsDecoder 获取真实地址 -- 开始 */
     if (playParams && playParams.hasOwnProperty('decoderPath')) {
       if (playParams && playParams.hasOwnProperty('userName') && playParams.hasOwnProperty('password')) {
-        var cryJS = '/js/cryptico.min.js';
+        // var cryJS = '/js/cryptico.min.js';
 
-        addJs(cryJS, function () { })
+        // addJs(cryJS, function () { })
 
 
-          console.log("开始播放局域网");
+        console.log("开始播放局域网");
 
-          getRealUrlPromise = function (resolve, reject, ezopenURL) {
-            // var realUrl = 'ws://10.11.36.57:7681/101?sessionID=64faad6d7e2ac432a623404914ecc9997ea8533cd1f71e6e72548104b1d7279f';
-            // resolve(realUrl);
-            
-            var realUrl = '';
-            // 向API请求真实地址
-            var apiUrl = apiDomain + "/api/lapp/v2/live/laninfo/get";
-            var apiSuccess = function (data) {
-              if (data.code == 200 || data.retcode == 0) {
-                //realUrl += 'ws://' + data.data.localIp + ':' + data.data.wssLocalPort + '10' + (playParams.url.indexOf('hd') === -1 ? '2' : '1');
-                //test
-                realUrl += 'ws://' + data.data.localIp + ':' + data.data.wssLocalPort+ '/' + '10' + (playParams.url.indexOf('hd') === -1 ? '2' : '1');
-                // 执行设备授权
-                capabilitiesUrl = domain + "/jssdk/ezopen/sessionLogin/capabilities?ip="+data.data.localIp+"&username=" + playParams.userName
-                var capabilitiesSuccess = function (xmlDoc, textStatus, xhr) {
-                  console.log("xmlDoc", xmlDoc, xmlDoc.split('<sessionID>'))
-                  var userName = playParams.userName;
-                  var password = playParams.password;
-                  var sessionIDReg = /<sessionID>(.*)<\/sessionID>/i;
-                  var challengeReg = /<challenge>(.*)<\/challenge>/i;
-                  var iterationsReg = /<iterations>(.*)<\/iterations>/i;
-                  var isIrreversibleReg = /<isIrreversible>(.*)<\/isIrreversible>/i;
-                  var saltReg = /<salt>(.*)<\/salt>/i;
+        getRealUrlPromise = function (resolve, reject, ezopenURL) {
+          // var realUrl = 'ws://10.11.36.57:7681/101?sessionID=64faad6d7e2ac432a623404914ecc9997ea8533cd1f71e6e72548104b1d7279f';
+          // resolve(realUrl);
 
-                  var sessionID = sessionIDReg.exec(xmlDoc)[1];
-                  var challenge = challengeReg.exec(xmlDoc)[1];
-                  var iterations = iterationsReg.exec(xmlDoc)[1];
-                  var isIrreversible = isIrreversibleReg.exec(xmlDoc)[1] == 'true';
-                  var salt = saltReg.exec(xmlDoc)[1];
-                  console.log(sessionID, challenge, iterations, isIrreversible, salt)
+          var realUrl = '';
+          // 向API请求真实地址
+          var apiUrl = apiDomain + "/api/lapp/v2/live/laninfo/get";
+          var apiSuccess = function (data) {
+            if (data.code == 200 || data.retcode == 0) {
+              //realUrl += 'ws://' + data.data.localIp + ':' + data.data.wssLocalPort + '10' + (playParams.url.indexOf('hd') === -1 ? '2' : '1');
+              //test -start
+              data.data.localIp = '10.11.51.53';
+              apiDomain = 'http://y.ys7.com:3100';
+              // test-end
+              realUrl += 'ws://' + data.data.localIp + ':' + data.data.wssLocalPort + '/' + '10' + (playParams.url.indexOf('hd') === -1 ? '2' : '1');
+              // 执行设备授权
+              capabilitiesUrl = apiDomain + "/jssdk/ezopen/sessionLogin/capabilities?ip=" + data.data.localIp + "&username=" + playParams.userName
+              var capabilitiesSuccess = function (xmlDoc, textStatus, xhr) {
+                console.log("xmlDoc", xmlDoc, xmlDoc.split('<sessionID>'))
+                var userName = playParams.userName;
+                var password = playParams.password;
+                var sessionIDReg = /<sessionID>(.*)<\/sessionID>/i;
+                var challengeReg = /<challenge>(.*)<\/challenge>/i;
+                var iterationsReg = /<iterations>(.*)<\/iterations>/i;
+                var isIrreversibleReg = /<isIrreversible>(.*)<\/isIrreversible>/i;
+                var saltReg = /<salt>(.*)<\/salt>/i;
 
-                  var szEncryptedPwd = '';
-                  if (!isIrreversible) {
-                    szEncryptedPwd = SHA256(password) + challenge;
-                    for (var i = 1; i < iterations; i++) {
-                      szEncryptedPwd = SHA256(szEncryptedPwd);
-                    }
-                  } else {
-                    szEncryptedPwd = SHA256(userName + salt + password);
-                    szEncryptedPwd = SHA256(szEncryptedPwd + challenge);
-                    for (var i = 2; i < iterations; i++) {
-                      szEncryptedPwd = SHA256(szEncryptedPwd);
-                    }
+                var sessionID = sessionIDReg.exec(xmlDoc)[1];
+                var challenge = challengeReg.exec(xmlDoc)[1];
+                var iterations = iterationsReg.exec(xmlDoc)[1];
+                var isIrreversible = isIrreversibleReg.exec(xmlDoc)[1] == 'true';
+                var salt = saltReg.exec(xmlDoc)[1];
+                console.log(sessionID, challenge, iterations, isIrreversible, salt)
+
+                var szEncryptedPwd = '';
+                if (!isIrreversible) {
+                  szEncryptedPwd = SHA256(password) + challenge;
+                  for (var i = 1; i < iterations; i++) {
+                    szEncryptedPwd = SHA256(szEncryptedPwd);
                   }
-                  console.log("szEncryptedPwd", szEncryptedPwd)
-                  // // session登录
-                  // var loginUrl = 'http://y.ys7.com:3100/jssdk/ezopen/sessionLogin?ip=' + '10.11.36.57' + '&encryptedPwd=' + szEncryptedPwd + '&sessionID=' + sessionID;
-                  // var loginSuccess = function (data) {
-                  //   // debugger;
-                  // }
-                  // var loginError = function (err) {
-                  // }
-                  // // debugger
-                  // request(loginUrl, 'GET', null, '', loginSuccess, loginError);
-                  $.ajax({
-                    url: apiDomain + '/jssdk/ezopen/sessionLogin',
-                    type: "post",
-                    data: {
-                      ip: data.data.localIp,
-                      authXml: "<SessionLogin><userName>"+playParams.userName+"</userName><password>" + szEncryptedPwd + "</password><sessionID>" + sessionID + "</sessionID>\r\n\t<isSessionIDValidLongTerm>false</isSessionIDValidLongTerm>\r\n\t<sessionIDVersion>2</sessionIDVersion>\r\n</SessionLogin>",
-                    },
-                    success:  (data)=> {
-                      console.log("data", data);
-                      szWebsocketSessionID = data.WebSession.split("=")[1].split(";")[0];
-                      realUrl += '?sessionID=' + szWebsocketSessionID;
-                      resolve(realUrl);
-                    },
-                    error: function (xhr, textStatus, errorThrown) {
-                      alert("error");
-                    }
-                  })
-
-                }
-
-                var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
-                var deviceSerial = playParams.url.match(deviceSerialReg)[0].split('/')[0];
-
-                var capabilitiesError = function (error) {
-                  // 将错误信息捕获到用户自定义错误回调中
-                  if (playParams && playParams.handleError) {
-                    playParams.handleError(error);
+                } else {
+                  szEncryptedPwd = SHA256(userName + salt + password);
+                  szEncryptedPwd = SHA256(szEncryptedPwd + challenge);
+                  for (var i = 2; i < iterations; i++) {
+                    szEncryptedPwd = SHA256(szEncryptedPwd);
                   }
                 }
-                request(capabilitiesUrl, 'GET', {}, '', capabilitiesSuccess, capabilitiesError);
+                console.log("szEncryptedPwd", szEncryptedPwd)
+                // // session登录
+                // var loginUrl = 'http://y.ys7.com:3100/jssdk/ezopen/sessionLogin?ip=' + '10.11.36.57' + '&encryptedPwd=' + szEncryptedPwd + '&sessionID=' + sessionID;
+                // var loginSuccess = function (data) {
+                //   // debugger;
+                // }
+                // var loginError = function (err) {
+                // }
+                // // debugger
+                // request(loginUrl, 'GET', null, '', loginSuccess, loginError);
+                $.ajax({
+                  url: apiDomain + '/jssdk/ezopen/sessionLogin',
+                  type: "post",
+                  data: {
+                    ip: data.data.localIp,
+                    authXml: "<SessionLogin><userName>" + playParams.userName + "</userName><password>" + szEncryptedPwd + "</password><sessionID>" + sessionID + "</sessionID>\r\n\t<isSessionIDValidLongTerm>false</isSessionIDValidLongTerm>\r\n\t<sessionIDVersion>2</sessionIDVersion>\r\n</SessionLogin>",
+                  },
+                  success: function (data) {
+                    console.log("data", data);
+                    szWebsocketSessionID = data.WebSession.split("=")[1].split(";")[0];
+                    realUrl += '?sessionID=' + szWebsocketSessionID;
+                    resolve(realUrl);
+                  },
+                  error: function (xhr, textStatus, errorThrown) {
+                    alert("error");
+                  }
+                })
 
               }
-            }
 
-            var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
-            var deviceSerial = playParams.url.match(deviceSerialReg)[0].split('/')[0];
-            var apiParams = {
-              deviceSerial: deviceSerial,
-              accessToken: playParams.accessToken,
-            }
-            var apiError = function (error) {
-              // 将错误信息捕获到用户自定义错误回调中
-              if (playParams && playParams.handleError) {
-                playParams.handleError(error);
+              var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
+              var deviceSerial = playParams.url.match(deviceSerialReg)[0].split('/')[0];
+
+              var capabilitiesError = function (error) {
+                // 将错误信息捕获到用户自定义错误回调中
+                if (playParams && playParams.handleError) {
+                  playParams.handleError(error);
+                }
               }
-            }
-            request(apiUrl, 'POST', apiParams, '', apiSuccess, apiError);
+              request(capabilitiesUrl, 'GET', {}, '', capabilitiesSuccess, capabilitiesError);
 
+            }
           }
-          var urlList = playParams.url.split(',')
-          var promiseTaskList = [];
-          var promiseTaskFun = function (ezopenURL) {
-            return new Promise(function (resolve, reject) { return getRealUrlPromise(resolve, reject, ezopenURL) })
-          };
-          urlList.map(function (item, index) {
-            _this.loadingSet(index, { text: '获取设备播放地址' })
-            promiseTaskList.push(promiseTaskFun(item));
-          });
-          var getRealUrlPromiseObj = Promise.all(promiseTaskList)
-            .then(function (result) {
-              // debugger
-              // 获取真实地址成功后，赋值到opt属性中
-              _this.opt.sources = result;
-              _this.opt.currentSource = result[0];
-              result.forEach(function (item, index) {
-                _this.loadingSet(index, { text: '获取播放地址成功' })
-              })
+
+          var deviceSerialReg = /[a-zA-Z0-9]{9}\/[0-9]{0,2}\./;
+          var deviceSerial = playParams.url.match(deviceSerialReg)[0].split('/')[0];
+          var apiParams = {
+            deviceSerial: deviceSerial,
+            accessToken: playParams.accessToken,
+          }
+          var apiError = function (error) {
+            // 将错误信息捕获到用户自定义错误回调中
+            if (playParams && playParams.handleError) {
+              playParams.handleError(error);
+            }
+          }
+          request(apiUrl, 'POST', apiParams, '', apiSuccess, apiError);
+
+        }
+        var urlList = playParams.url.split(',')
+        var promiseTaskList = [];
+        var promiseTaskFun = function (ezopenURL) {
+          return new Promise(function (resolve, reject) { return getRealUrlPromise(resolve, reject, ezopenURL) })
+        };
+        urlList.map(function (item, index) {
+          _this.loadingSet(index, { text: '获取设备播放地址' })
+          promiseTaskList.push(promiseTaskFun(item));
+        });
+        var getRealUrlPromiseObj = Promise.all(promiseTaskList)
+          .then(function (result) {
+            // debugger
+            // 获取真实地址成功后，赋值到opt属性中
+            _this.opt.sources = result;
+            _this.opt.currentSource = result[0];
+            result.forEach(function (item, index) {
+              _this.loadingSet(index, { text: '获取播放地址成功' })
             })
-            .catch(function (err) {
-              // debugger
-              _this.log("获取真实地址错误" + JSON.stringify(err), 'error')
-            })
-          return getRealUrlPromiseObj;
-      
+          })
+          .catch(function (err) {
+            // debugger
+            _this.log("获取真实地址错误" + JSON.stringify(err), 'error')
+          })
+        return getRealUrlPromiseObj;
+
       } else {
         // api 获取真实地址开始时间
         var getRealUrlDurationST = new Date().getTime();
@@ -1527,6 +1538,7 @@
   }
 
   EZUIPlayer.prototype.play = function (i) {
+    // debugger
     //var index = params.index;
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
@@ -1716,34 +1728,21 @@
             console.log(iWndIndex, iErrorCode, oError);
             if (playParams && playParams.handleError) {
               playParams.handleError({ retcode: iErrorCode, msg: oError ? oError : '播放失败，请重试' });
-              _this.loadingSetIcon(iWndIndex, 'retry');
-              _this.loadingSet(iWndIndex, { text: '播放失败，请重试' });
+              if(playParams.url.indexOf("alarmId")!== -1) {
+                _this.loadingSetIcon(iWndIndex, 'retry');
+                _this.loadingSet(iWndIndex, { text: '播放结束' });
+              } else {
+                _this.loadingSetIcon(iWndIndex, 'retry');
+                _this.loadingSet(iWndIndex, { text: '播放失败，请重试' });
+              }
             }
           },
-          windowEventOver: function (iWndIndex) {  //鼠标移过回调
-            //console.log(iWndIndex);
-          },
-          windowEventOut: function (iWndIndex) {  //鼠标移出回调
-            //console.log(iWndIndex);
-          },
-          windowEventUp: function (iWndIndex) {  //鼠标mouseup事件回调
-            //console.log(iWndIndex);
-          },
-          windowFullCcreenChange: function (bFull) {  //全屏切换回调
-            console.log(bFull);
-          },
-          firstFrameDisplay: function (iWndIndex, iWidth, iHeight) {  //首帧显示回调
-            console.log(iWndIndex, iWidth, iHeight);
-          },
-          performanceLack: function () {  //性能不足回调
-
-          }
         });
         _this.jSPlugin.JS_SetOptions({
           //bSupportSound: false  //是否支持音频，默认支持
-          bSupporDoubleClickFull: typeof playParams.isSupporDoubleClickFull === 'undefined' ? true : playParams.isSupporDoubleClickFull    //是否双击窗口全屏，默认支持
+          bSupporDoubleClickFull: typeof playParams.isSupporDoubleClickFull === 'undefined' ? true : playParams.isSupporDoubleClickFull,    //是否双击窗口全屏，默认支持
           //bOnlySupportMSE: true  //只支持MSE
-          //bOnlySupportJSDecoder: true  //只支持JSDecoder
+          bOnlySupportJSDecoder: true  //只支持JSDecoder
         }).then(function () {
           console.log("JS_SetOptions");
         });
@@ -1900,7 +1899,7 @@
   EZUIPlayer.prototype.getVersion = function (wNum) {
     const _this = this;
     if (!!this.jSPlugin) {
-      console.log(_this.jSPlugin.GetPluginVersion());
+      console.log(_this.jSPlugin.JS_GetSdkVersion());
     } else {
       throw new Error("Method  not support");
     }
