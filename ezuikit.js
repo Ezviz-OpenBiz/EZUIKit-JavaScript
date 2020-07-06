@@ -826,18 +826,26 @@
                 realUrl += data.data;
                 /**参数容错处理  start*/
                 if (data.data.indexOf('playback') !== -1) { //回放
+                  var wsBegin = getQueryString('begin', data.data) || getQueryString('begin', playParams.url);
+                  var wsEnd = getQueryString('end', data.data) || getQueryString('end', playParams.url);
                   // 兼容各种时间格式
-                  if (!getQueryString('begin', data.data)) {
+                  if (!wsBegin) {
                     var defaultDate = new Date();
                     realUrl = realUrl + '&begin=' + defaultDate.Format('yyyyMMdd') + 'T000000Z';
                   } else {
-                    realUrl = realUrl.replace('&begin=' + getQueryString('begin', data.data), '&begin=' + formatRecTime(getQueryString('begin', data.data), '000000'))
+                    realUrl = realUrl.replace('&begin=' + getQueryString('begin', data.data), '&begin=' + formatRecTime(wsBegin, '000000'))
+                    if(!getQueryString('begin',realUrl)){
+                      realUrl += '&begin=' + formatRecTime(wsBegin, '000000');
+                    }
                   }
-                  if (!getQueryString('end', data.data)) {
+                  if (!wsEnd) {
                     var defaultDate = new Date();
                     realUrl = realUrl + '&end=' + defaultDate.Format('yyyyMMdd') + 'T235959Z';
                   } else {
-                    realUrl = realUrl.replace('&end=' + getQueryString('end', data.data), '&end=' + formatRecTime(getQueryString('end', data.data), '235959'))
+                    realUrl = realUrl.replace('&end=' + getQueryString('end', data.data), '&end=' + formatRecTime(wsEnd, '235959'))
+                    if(!getQueryString('end',realUrl)){
+                      realUrl += '&end=' + formatRecTime(wsEnd, '235959');
+                    }
                   }
                   // api错误处理
                   if (!getQueryString('stream', data.data)) {
