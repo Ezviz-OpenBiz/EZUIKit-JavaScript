@@ -1,5 +1,5 @@
 /**
- * jssdk 2.6
+ * jssdk 3.0
  */
 (function (global, factory) {
 
@@ -1011,7 +1011,7 @@
               } else {
                 // 将错误信息捕获到用户自定义错误回调中
                 if (playParams && playParams.handleError) {
-                  playParams.handleError(data);
+                  playParams.handleError(Object.assign({retcode: data.code || -1,msg: data.msg || '其他错误'}));
                 }
                 // 执行一次API服务请求服务错误上报
                 var getRealUrlDurationET = new Date().getTime();
@@ -1031,7 +1031,7 @@
             var apiError = function (error) {
               // 将错误信息捕获到用户自定义错误回调中
               if (playParams && playParams.handleError) {
-                playParams.handleError(error);
+                playParams.handleError(Object.assign({retcode: error.code || -1,msg: error.msg || '其他错误'}));
               }
               var getRealUrlDurationET = new Date().getTime();
               ezuikitDclog({
