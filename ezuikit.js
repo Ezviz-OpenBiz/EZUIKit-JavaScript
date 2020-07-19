@@ -410,16 +410,19 @@
       var initDecoder = this.initDecoder(playParams);
       // 初始化播放器
       _this.loadingSet(0, { text: '初始化播放器...' });
+      if(playParams.autoplay){
+        _this.play()
+      }
       if (isPromise(initDecoder)) {
         initDecoder.then(function (data) {
           _this.loadingSet(0, { text: '初始化完成' });
           // setTimeout(function () {
           //   _this.play(playParams);
           // }, 100)
-          var getRealUrl = _this.getRealUrl(playParams);
-          getRealUrl.then(function (data) {
-            _this.play(playParams);
-          })
+          // var getRealUrl = _this.getRealUrl(playParams);
+          // getRealUrl.then(function (data) {
+          //   _this.play(playParams);
+          // })
         })
       }
       // debugger
@@ -536,7 +539,6 @@
     });
     var appInfoSuccess = function (data) {
       if (data.retcode === 0 && data.data) {
-        console.log("data", data);
         appKey = data.data.appKey;
       }
       // 上报一次本地信息
@@ -1568,7 +1570,7 @@
     }
   }
 
-  EZUIPlayer.prototype.play = function (i) {
+  EZUIPlayer.prototype.play = function (data) {
     // debugger
     //var index = params.index;
     if (!!window['CKobject']) {
@@ -1591,148 +1593,155 @@
       var audioId = 0
       if(playParams && playParams.audioId){
         audioId = playParams.audioId;
-      }else if(playParams && playParams.audioId === -1) {
+      }else if(playParams && playParams.audioId === -1){
         audioId = undefined;
       }
-
-      var _this = this;
-      function getPlayParams(url) {
-        var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
-        // console.log("playParams,",playParams,playParams.env.wsUrl)
-        // if(playParams && playParams.env && playParams.env.wsUrl){
-        //   websocketConnectUrl= playParams.env.wsUrl;
-        // }
-        console.log("_this.opt.sources.", _this.opt.sources)
-        var websocketStreamingParam = (url.indexOf('/live') === -1 ? (url.indexOf('cloudplayback') !== -1 ? '/cloudplayback?' : '/playback?') : '/live?') + url.split('?')[1];
-        // 本地回放仅支持主码流 - 2019-11-05 修订
-        if (websocketStreamingParam.indexOf('/playback') !== -1) {
-          websocketStreamingParam = websocketStreamingParam.replace("stream=2", 'stream=1');
-        }
-        // 本地回放仅支持主码流
-        return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
+      if ( typeof data === 'string'){
+        playParams.url = data;
+      }else if(typeof data === 'object'){
+        playParams = Object.assign(playParams,data);
       }
-      _this.opt.sources.forEach(function (item, index) {
-        if (getQueryString('dev', item) || item.indexOf('ws') !== -1) {
-          _this.log("开始播放, 第" + (index + 1) + '路，' + '地址：' + item);
-          _this.loadingSet(index, { text: '准备播放...', color: '#fff' })
-          // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
-          var validateCode = getQueryString('checkCode', item);
-          if (validateCode) {
-            _this.log('设置秘钥，视频路数：' + (index + 1) + '验证码：' + validateCode)
-            _this.jSPlugin.JS_SetSecretKey(index, validateCode);
+      var getRealUrl = this.getRealUrl(playParams);
+      var _this = this;
+      getRealUrl.then(function () {
+        function getPlayParams(url) {
+          var websocketConnectUrl = url.split('?')[0].replace('/live', '').replace('/playback', '');
+          // console.log("playParams,",playParams,playParams.env.wsUrl)
+          // if(playParams && playParams.env && playParams.env.wsUrl){
+          //   websocketConnectUrl= playParams.env.wsUrl;
+          // }
+          console.log("_this.opt.sources.", _this.opt.sources)
+          var websocketStreamingParam = (url.indexOf('/live') === -1 ? (url.indexOf('cloudplayback') !== -1 ? '/cloudplayback?' : '/playback?') : '/live?') + url.split('?')[1];
+          // 本地回放仅支持主码流 - 2019-11-05 修订
+          if (websocketStreamingParam.indexOf('/playback') !== -1) {
+            websocketStreamingParam = websocketStreamingParam.replace("stream=2", 'stream=1');
           }
-          var playST = new Date().getTime();
+          // 本地回放仅支持主码流
+          return { websocketConnectUrl: websocketConnectUrl, websocketStreamingParam: websocketStreamingParam }
+        }
+        _this.opt.sources.forEach(function (item, index) {
+          if (getQueryString('dev', item) || item.indexOf('ws') !== -1) {
+            _this.log("开始播放, 第" + (index + 1) + '路，' + '地址：' + item);
+            _this.loadingSet(index, { text: '准备播放...', color: '#fff' })
+            // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
+            var validateCode = getQueryString('checkCode', item);
+            if (validateCode) {
+              _this.log('设置秘钥，视频路数：' + (index + 1) + '验证码：' + validateCode)
+              _this.jSPlugin.JS_SetSecretKey(index, validateCode);
+            }
+            var playST = new Date().getTime();
 
-          var wsUrl = ''
-          var wsParams = ''
-          if (_this.playParams && _this.playParams.hasOwnProperty('userName') && _this.playParams.hasOwnProperty('password')) {
-            console.log("this.opt.")
-            wsUrl = item.split('?')[0];
-            wsParams = {
-              sessionID: getQueryString('sessionID', item),
-            }
-          } else {
-            wsUrl = getPlayParams(item).websocketConnectUrl;
-            wsParams = {
-              playURL: getPlayParams(item).websocketStreamingParam
-            }
-          }
-          _this.jSPlugin.JS_Play(wsUrl, wsParams, index).then(function () {
-            _this.log('播放成功，当前播放第' + (index + 1) + '路');
-            _this.loadingSet(index, { text: '播放成功...' });
-            //单次播放日志上报
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 2,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playST,
-              rt: 200,
-            })
-            // 播放成功
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 99,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playStartTime,
-              rt: 200,
-            })
-            _this.loadingEnd(index);
-            // 默认开启声音
-            // 默认开启第一路声音
-            if (typeof(audioId) !== "undefined" && audioId === index) {
-              _this.log("默认开启第1路声音");
-              setTimeout(function () {
-                var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
-                console.log("openSoundRT", openSoundRT)
-                openSoundRT.then(function (data) {
-                  _this.log('开启声音成功', data)
-                })
-                  .catch(function (err) {
-                    _this.log('开启声音失败', 'error', err)
-                  })
-              }, 100)
-            }
-            // 播放成功回调
-            if (playParams && playParams.handleSuccess) {
-              playParams.handleSuccess();
-            }
-            // 
-            // 播放成功日志上报
-            var PlTp = 1;
-            if (playParams && playParams.url) {
-              if (playParams.url.indexOf('rec') !== -1) {
-                PlTp = 2;
+            var wsUrl = ''
+            var wsParams = ''
+            if (_this.playParams && _this.playParams.hasOwnProperty('userName') && _this.playParams.hasOwnProperty('password')) {
+              wsUrl = item.split('?')[0];
+              wsParams = {
+                sessionID: getQueryString('sessionID', item),
+              }
+            } else {
+              wsUrl = getPlayParams(item).websocketConnectUrl;
+              wsParams = {
+                playURL: getPlayParams(item).websocketStreamingParam
               }
             }
-            dclog({
-              systemName: PLAY_MAIN,
-              playurl: encodeURIComponent(item),
-              Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
-              Enc: 0,  // 0 不加密 1 加密
-              PlTp: PlTp,  // 1 直播 2 回放
-              Via: 2,  // 2 服务端取流
-              ErrCd: 0,
-              OpId: uuid(),
-              Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
-              Serial: getQueryString('dev', item),
-              Channel: getQueryString('chn', item),
-            });
-          }, function (err) {
-            _this.log('播放失败' + JSON.stringify(err), 'error');
-            var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode });
-            ezuikitDclog({
-              systemName: PERFORMANCE_EZUIKIT,
-              bn: 2,
-              browser: JSON.stringify(getBrowserInfo()),
-              duration: new Date().getTime() - playStartTime,
-              rt: err.oError ? err.oError.errorCode : 500,
-              msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+            _this.jSPlugin.JS_Play(wsUrl, wsParams, index).then(function () {
+              _this.log('播放成功，当前播放第' + (index + 1) + '路');
+              _this.loadingSet(index, { text: '播放成功...' });
+              //单次播放日志上报
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 2,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playST,
+                rt: 200,
+              })
+              // 播放成功
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 99,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playStartTime,
+                rt: 200,
+              })
+              _this.loadingEnd(index);
+              // 默认开启声音
+              // 默认开启第一路声音
+              if (typeof(audioId) !== "undefined" && audioId === index) {
+                _this.log("默认开启第1路声音");
+                setTimeout(function () {
+                  var openSoundRT = _this.jSPlugin.JS_OpenSound(0);
+                  console.log("openSoundRT", openSoundRT)
+                  openSoundRT.then(function (data) {
+                    _this.log('开启声音成功', data)
+                  })
+                    .catch(function (err) {
+                      _this.log('开启声音失败', 'error', err)
+                    })
+                }, 100)
+              }
+              // 播放成功回调
+              if (playParams && playParams.handleSuccess) {
+                playParams.handleSuccess();
+              }
+              // 
+              // 播放成功日志上报
+              var PlTp = 1;
+              if (playParams && playParams.url) {
+                if (playParams.url.indexOf('rec') !== -1) {
+                  PlTp = 2;
+                }
+              }
+              dclog({
+                systemName: PLAY_MAIN,
+                playurl: encodeURIComponent(item),
+                Time: (new Date()).Format('yyyy-MM-dd hh:mm:ss.S'),
+                Enc: 0,  // 0 不加密 1 加密
+                PlTp: PlTp,  // 1 直播 2 回放
+                Via: 2,  // 2 服务端取流
+                ErrCd: 0,
+                OpId: uuid(),
+                Cost: (new Date()).getTime() - _this.initTime,  // 毫秒数
+                Serial: getQueryString('dev', item),
+                Channel: getQueryString('chn', item),
+              });
+            }, function (err) {
+              _this.log('播放失败' + JSON.stringify(err), 'error');
+              var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode });
+              ezuikitDclog({
+                systemName: PERFORMANCE_EZUIKIT,
+                bn: 2,
+                browser: JSON.stringify(getBrowserInfo()),
+                duration: new Date().getTime() - playStartTime,
+                rt: err.oError ? err.oError.errorCode : 500,
+                msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+              })
+              var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
+              _this.loadingSet(index, { text: msg, color: 'red' });
+              dclog({
+                systemName: PLAY_MAIN,
+                playurl: encodeURIComponent(item),
+                cost: -1,
+                ErrCd: (err && err.oError && err.oError.errorCode && (err.oError.errorCode + "").substr(-4)) || -1,
+                Via: 2,
+                OpId: uuid(),
+                Serial: getQueryString('dev', item),
+                Channel: getQueryString('chn', item),
+              });
+              if (playParams && playParams.handleError) {
+                var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
+                playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
+              }
             })
-            var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
-            _this.loadingSet(index, { text: msg, color: 'red' });
-            dclog({
-              systemName: PLAY_MAIN,
-              playurl: encodeURIComponent(item),
-              cost: -1,
-              ErrCd: (err && err.oError && err.oError.errorCode && (err.oError.errorCode + "").substr(-4)) || -1,
-              Via: 2,
-              OpId: uuid(),
-              Serial: getQueryString('dev', item),
-              Channel: getQueryString('chn', item),
-            });
-            if (playParams && playParams.handleError) {
-              var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
-              playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
-            }
-          })
 
-        } else {
-          if (isJSON(item) && JSON.parse(item).msg) {
-            _this.loadingSet(index, { text: JSON.parse(item).msg, color: 'red' })
+          } else {
+            if (isJSON(item) && JSON.parse(item).msg) {
+              _this.loadingSet(index, { text: JSON.parse(item).msg, color: 'red' })
+            }
           }
-        }
+        })
       })
     }
+    
 
   };
   EZUIPlayer.prototype.initDecoder = function (playParams) {
@@ -1765,7 +1774,6 @@
         _this.jSPlugin.JS_SetWindowControlCallback({
           windowEventSelect: function (iWndIndex) {  //插件选中窗口回调
             iWind = iWndIndex;
-            console.log(iWndIndex);
           },
           pluginErrorHandler: function (iWndIndex, iErrorCode, oError) {  //插件错误回调
             console.log(iWndIndex, iErrorCode, oError);
