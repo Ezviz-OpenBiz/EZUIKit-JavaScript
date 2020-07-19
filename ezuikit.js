@@ -186,6 +186,8 @@
   /** insertAfter */
   function insertAfter(newElement, targetElement) { var parent = targetElement.parentNode; if (parent.lastChild == targetElement) { parent.appendChild(newElement); } else { parent.insertBefore(newElement, targetElement.nextSibling); } }
 
+  
+  
   var EZUIPlayer = function (playParams) {
     if (!isModernBrowser) {
       throw new Error('不支持ie8等低版本浏览器');
@@ -404,33 +406,39 @@
       /** 根据播放参数获取真实播放地址 */
       this.loadingStart();
       playStartTime = new Date().getTime();
-
-      var getRealUrl = this.getRealUrl(playParams);
+      // var getRealUrl = this.getRealUrl(playParams);
+      var initDecoder = this.initDecoder(playParams);
+      // 初始化播放器
+      _this.loadingSet(0, { text: '初始化播放器...' });
+      if (isPromise(initDecoder)) {
+        initDecoder.then(function (data) {
+          _this.loadingSet(0, { text: '初始化完成' });
+          // setTimeout(function () {
+          //   _this.play(playParams);
+          // }, 100)
+          var getRealUrl = _this.getRealUrl(playParams);
+          getRealUrl.then(function (data) {
+            _this.play(playParams);
+          })
+        })
+      }
       // debugger
       /**是否自动播放 */
-      if (isPromise(getRealUrl)) {
-        getRealUrl.then(function (data) {
-          var initDecoder = _this.initDecoder(playParams);
-          // 初始化播放器
-          _this.loadingSet(0, { text: '初始化播放器...' });
-          if (isPromise(initDecoder)) {
-            initDecoder.then(function (data) {
-              _this.loadingSet(0, { text: '初始化完成' });
-              setTimeout(function () {
-                _this.play(playParams);
-              }, 1500)
-            })
-          }
-        })
-          .catch(function (err) {
-            var initDecoder = _this.initDecoder(playParams);
-            if (isPromise(initDecoder) && (playParams.autoplay !== false)) {
-              initDecoder.then(function () {
-                // _this.play({ handleError: playParams.handleError });
-              })
-            }
-          });
-      }
+      // if (isPromise(getRealUrl)) {
+      //   getRealUrl.then(function (data) {
+      //     var initDecoder = _this.initDecoder(playParams);
+      //     // 初始化播放器
+      //     _this.loadingSet(0, { text: '初始化播放器...' });
+      //     if (isPromise(initDecoder)) {
+      //       initDecoder.then(function (data) {
+      //         _this.loadingSet(0, { text: '初始化完成' });
+      //         setTimeout(function () {
+      //           _this.play(playParams);
+      //         }, 1500)
+      //       })
+      //     }
+      //   })
+      // }
     } else {
       var domain = "https://open.ys7.com";
       var elementID = '';
@@ -768,62 +776,73 @@
           if (!/^ezopen:\/\//.test(ezopenURL)) { // JSDecoder ws协议播放
             resolve(ezopenURL);
           } else {
-            var getPlayTokenST = new Date().getTime();
-            var nodeUrl = apiDomain + "/jssdk/ezopen/getStreamToken?accessToken=" + playParams.accessToken + '&num=10&type=' + (playParams.url.indexOf('live') !== -1 ? 'live' : 'playback');
-            var nodeSuccess = function (data) {
-              if (data.retcode === 0) {
-                realUrl = realUrl + data.data.params + '&ssn=' + data.data.tokens[0];
-                // _this.opt.currentSource = realUrl;
-                ezuikitDclog({
-                  systemName: PERFORMANCE_EZUIKIT,
-                  bn: 3,
-                  browser: JSON.stringify(getBrowserInfo()),
-                  duration: new Date().getTime() - getPlayTokenST,
-                  rt: 200,
-                })
-                resolve(realUrl);
-              } else {
-                // 将错误信息捕获到用户自定义错误回调中
-                if (playParams && playParams.handleError) {
-                  playParams.handleError(data);
-                }
-                // 错误信息显示在状态中
-                if (data.msg) {
-                  _this.loadingSet(0, { text: data.msg, color: 'red' });
-                }
-                ezuikitDclog({
-                  systemName: PERFORMANCE_EZUIKIT,
-                  bn: 3,
-                  browser: JSON.stringify(getBrowserInfo()),
-                  duration: new Date().getTime() - getPlayTokenST,
-                  rt: data.retcode,
-                  msg: data.msg,
-                })
-                resolve(JSON.stringify(data));
-                throw new Error('获取播放token失败');
-              }
-            }
-            var nodeError = function (error) {
-              // 将错误信息捕获到用户自定义错误回调中
-              if (playParams && playParams.handleError) {
-                playParams.handleError(error);
-              }
-              ezuikitDclog({
-                systemName: PERFORMANCE_EZUIKIT,
-                bn: 3,
-                browser: JSON.stringify(getBrowserInfo()),
-                duration: new Date().getTime() - getPlayTokenST,
-                rt: 500,
-                msg: '获取取流token网络错误',
-              })
-              resolve(JSON.stringify(error))
-              throw new Error('获取播放token失败', 'error');
-            }
+            // var getPlayTokenST = new Date().getTime();
+            // var nodeUrl = apiDomain + "/jssdk/ezopen/getStreamToken?accessToken=" + playParams.accessToken + '&num=10&type=' + (playParams.url.indexOf('live') !== -1 ? 'live' : 'playback');
+            // var nodeSuccess = function (data) {
+            //   if (data.retcode === 0) {
+            //     realUrl = realUrl + data.data.params + '&ssn=' + data.data.tokens[0];
+            //     // _this.opt.currentSource = realUrl;
+            //     ezuikitDclog({
+            //       systemName: PERFORMANCE_EZUIKIT,
+            //       bn: 3,
+            //       browser: JSON.stringify(getBrowserInfo()),
+            //       duration: new Date().getTime() - getPlayTokenST,
+            //       rt: 200,
+            //     })
+            //     resolve(realUrl);
+            //   } else {
+            //     // 将错误信息捕获到用户自定义错误回调中
+            //     if (playParams && playParams.handleError) {
+            //       playParams.handleError(data);
+            //     }
+            //     // 错误信息显示在状态中
+            //     if (data.msg) {
+            //       _this.loadingSet(0, { text: data.msg, color: 'red' });
+            //     }
+            //     ezuikitDclog({
+            //       systemName: PERFORMANCE_EZUIKIT,
+            //       bn: 3,
+            //       browser: JSON.stringify(getBrowserInfo()),
+            //       duration: new Date().getTime() - getPlayTokenST,
+            //       rt: data.retcode,
+            //       msg: data.msg,
+            //     })
+            //     resolve(JSON.stringify(data));
+            //     throw new Error('获取播放token失败');
+            //   }
+            // }
+            // var nodeError = function (error) {
+            //   // 将错误信息捕获到用户自定义错误回调中
+            //   if (playParams && playParams.handleError) {
+            //     playParams.handleError(error);
+            //   }
+            //   ezuikitDclog({
+            //     systemName: PERFORMANCE_EZUIKIT,
+            //     bn: 3,
+            //     browser: JSON.stringify(getBrowserInfo()),
+            //     duration: new Date().getTime() - getPlayTokenST,
+            //     rt: 500,
+            //     msg: '获取取流token网络错误',
+            //   })
+            //   resolve(JSON.stringify(error))
+            //   throw new Error('获取播放token失败', 'error');
+            // }
             // 向API请求真实地址
             var apiUrl = apiDomain + "/api/lapp/live/url/ezopen";
             var apiSuccess = function (data) {
               if (data.code == 200 || data.retcode == 0) {
                 realUrl += data.data;
+                if(data.ext && data.ext.token){
+                  stream = data.ext.token;
+                  var type= playParams.url.indexOf('live') !== -1 ? 'live' : 'playback';
+                  if(type === 'live'){
+                    realUrl = realUrl + '&auth=1&biz=4&cln=100' + '&ssn=' + stream;
+                  }else {
+                    realUrl = realUrl + '&auth=1&cln=100' + '&ssn=' + stream;
+                  }
+                  console.log(realUrl)
+                }
+
                 /**参数容错处理  start*/
                 if (data.data.indexOf('playback') !== -1) { //回放
                   var wsBegin = getQueryString('begin', data.data) || getQueryString('begin', playParams.url);
@@ -874,7 +893,8 @@
                           recSliceArr = recSliceArrFun(data.data);
                           var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
                           realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', ''));
-                          request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                          // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                          resolve(realUrl);
                         } else {
                           _this.log('未找到录像片段', 'error');
                           _this.loadingSet(0, { text: '获取设备播放地址' })
@@ -949,7 +969,8 @@
 
                             }
                             _this.opt.sources[0] = realUrl;
-                            request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                            resolve(realUrl);
+                           // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
                           } else {
                             _this.log('未找到录像片段', 'error');
                             _this.loadingSet(0, { text: '获取设备播放地址' })
@@ -990,13 +1011,15 @@
                       request(recSliceUrl, 'POST', recSliceParams, '', recAPISuccess, recAPIError);
                     } else {
                       // arlar rec - end
-                      request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                    // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                    resolve(realUrl);
                     }
                   }
 
                 } else {
                   // 预览直接获取回放片段
-                  request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                 // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
+                 resolve(realUrl);
                 }
                 getPlayTokenST = new Date().getTime();
                 // 执行一次API服务请求上报
