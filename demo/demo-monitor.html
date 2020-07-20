@@ -46,7 +46,7 @@
   <textarea id="url" placeholder="这里输入ezopen地址"></textarea>
   <textarea id="accessToken" placeholder="这里输入accessToken"></textarea>
   <div class="btn-container">
-    <button id="init">初始化播放</button>
+    <!-- <button id="init">初始化播放</button> -->
     <button id="play">播放</button>
     <button id="stop">结束</button>
     <button id="getOSDTime">获取OSD时间</button>
@@ -63,109 +63,110 @@
   <div id="playWind" style="width: 600px; height: 400px;">
   </div>
   <script>
-    $("#init").click(function () {
+    function handleError(e){
+        console.log('捕获到错误',e)
+    }
+    function handleSuccess(){
+      console.log("播放成功回调函数，此处可执行播放成功后续动作");
+    }
+    var url = $('#url').val().trim();
+    var accessToken = $('#accessToken').val().trim();
+    var decoder = new EZUIKit.EZUIPlayer({
+      id: 'playWind',
+      autoplay: true,
+      url: url,
+      accessToken: accessToken,
+      decoderPath: '',
+      width: 600,
+      height: 400,
+      handleError: handleError,
+      handleSuccess: handleSuccess,
+    });
+    // 这里是打印日志，本例抛出到播放页面
+    decoder.on('log', log);
+    function log(str,className) {
+      var div = document.createElement('DIV');
+      div.className=className || 'normal';
+      div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
+      document.body.appendChild(div);
+    }
+    $("#start").click(function () {
       function handleError(e){
-          console.log('捕获到错误',e)
-         // log(JSON.stringify(e),'error');
-          //alert(e)
+        console.log('handleError',e)
       }
       function handleSuccess(){
-        console.log("播放成功回调函数，此处可执行播放成功后续动作");
+        console.log('handleSuccess')
       }
+      decoder.play({
+        handleError: handleError,
+      });
+    })
+    $("#stop").click(function () {
+      /*停止播放方法1*/
+      // decoder.stop();
+      /*停止播放方法2 - promise模式*/
+      var stopPromise = decoder.stop();
+      stopPromise.then(function(){
+        console.log("关闭成功，用户执行关闭成功后的操作");
+      })
+    })
+    $("#getOSDTime").click(function () {
+      var getOSDTimePromise = decoder.getOSDTime();
+      getOSDTimePromise.then(function(data){
+        console.log("getOSDTime success",data)
+      })
+    })
+    $("#openSound").click(function () {
+      decoder.openSound();
+    })
+    $("#closeSound").click(function () {
+      decoder.closeSound();
+    })
+    $("#capturePicture").click(function () {
+      /*截图方法1*/
+      // decoder.capturePicture(0,'default');
+        /*截图方法2*/
+      var capturePicturePromise = decoder.capturePicture(0,'default');
+      capturePicturePromise.then(function(data){
+        console.log("截图成功，用户执行关闭成功后的操作",data);
+      })
+    })
+    $("#startSave").click(function () {
+      // decoder.startSave(0, (new Date().getTime() + 'video'));
+      /*开始录制方法2*/
+      var startSavePromise = decoder.startSave(0, (new Date().getTime() + 'video'));
+      startSavePromise.then(function(data){
+        console.log("start save success",startSavePromise)
+      })
+      .catch(function(error){
+        console.log("start Save error",error)
+      })
+    })
+    $("#stopSave").click(function () {
+      /*结束录制方法1*/
+      // decoder.stopSave(0);
+      /*结束录制方法2*/
+      var stopSavePromise = decoder.stopSave(0);
+      stopSavePromise.then(function(data){
+        console.log("stop save success",stopSavePromise)
+      })
+      .catch(function(error){
+        console.log("stop Save error",error)
+      })
+    })
+    $("#play").click(function () {
       var url = $('#url').val().trim();
       var accessToken = $('#accessToken').val().trim();
-      var decoder = new EZUIKit.EZUIPlayer({
-        id: 'playWind',
-        autoplay: true,
+      decoder.play({
         url: url,
         accessToken: accessToken,
-        decoderPath: '',
-        width: 600,
-        height: 400,
-        handleError: handleError,
-        handleSuccess: handleSuccess,
       });
-      // 这里是打印日志，本例抛出到播放页面
-      decoder.on('log', log);
-      function log(str,className) {
-        var div = document.createElement('DIV');
-        div.className=className || 'normal';
-        div.innerHTML = (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') + JSON.stringify(str);
-        document.body.appendChild(div);
-      }
-      $("#start").click(function () {
-        function handleError(e){
-          console.log('handleError',e)
-        }
-        function handleSuccess(){
-          console.log('handleSuccess')
-        }
-        decoder.play({
-          handleError: handleError,
-        });
-      })
-      $("#stop").click(function () {
-        /*停止播放方法1*/
-        // decoder.stop();
-        /*停止播放方法2 - promise模式*/
-        var stopPromise = decoder.stop();
-        stopPromise.then(function(){
-          console.log("关闭成功，用户执行关闭成功后的操作");
-        })
-      })
-      $("#getOSDTime").click(function () {
-        var getOSDTimePromise = decoder.getOSDTime();
-        getOSDTimePromise.then(function(data){
-          console.log("getOSDTime success",data)
-        })
-      })
-      $("#openSound").click(function () {
-        decoder.openSound();
-      })
-      $("#closeSound").click(function () {
-        decoder.closeSound();
-      })
-      $("#capturePicture").click(function () {
-        /*截图方法1*/
-        // decoder.capturePicture(0,'default');
-         /*截图方法2*/
-        var capturePicturePromise = decoder.capturePicture(0,'default');
-        capturePicturePromise.then(function(data){
-          console.log("截图成功，用户执行关闭成功后的操作",data);
-        })
-      })
-      $("#startSave").click(function () {
-        // decoder.startSave(0, (new Date().getTime() + 'video'));
-        /*开始录制方法2*/
-        var startSavePromise = decoder.startSave(0, (new Date().getTime() + 'video'));
-        startSavePromise.then(function(data){
-          console.log("start save success",startSavePromise)
-        })
-        .catch(function(error){
-          console.log("start Save error",error)
-        })
-      })
-      $("#stopSave").click(function () {
-        /*结束录制方法1*/
-        // decoder.stopSave(0);
-        /*结束录制方法2*/
-        var stopSavePromise = decoder.stopSave(0);
-        stopSavePromise.then(function(data){
-          console.log("stop save success",stopSavePromise)
-        })
-        .catch(function(error){
-          console.log("stop Save error",error)
-        })
-      })
-      $("#play").click(function () {
-        decoder.play();
-      })
-      $("#enableZoom").click(function () {
-        decoder.enableZoom();
-      })
-      $("#closeZoom").click(function () {
-        decoder.closeZoom();
-      })
+    })
+    $("#enableZoom").click(function () {
+      decoder.enableZoom();
+    })
+    $("#closeZoom").click(function () {
+      decoder.closeZoom();
     })
   </script>
 </body>
