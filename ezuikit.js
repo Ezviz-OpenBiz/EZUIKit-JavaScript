@@ -416,6 +416,7 @@
       if (isPromise(initDecoder)) {
         initDecoder.then(function (data) {
           _this.loadingSet(0, { text: '初始化完成' });
+          _this.loadingEnd(0);
           // setTimeout(function () {
           //   _this.play(playParams);
           // }, 100)
@@ -1588,8 +1589,8 @@
         this.video.play();
       }
     } else if (!!this.jSPlugin) {
+      this.loadingStart(0);
       var playParams = this.playParams;
-
       var audioId = 0
       if(playParams && playParams.audioId){
         audioId = playParams.audioId;
