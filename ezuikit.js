@@ -410,13 +410,15 @@
       var initDecoder = this.initDecoder(playParams);
       // 初始化播放器
       _this.loadingSet(0, { text: '初始化播放器...' });
-      if(playParams.autoplay){
-        _this.play()
-      }
       if (isPromise(initDecoder)) {
         initDecoder.then(function (data) {
           _this.loadingSet(0, { text: '初始化完成' });
           _this.loadingEnd(0);
+          if(playParams.autoplay){
+            setTimeout(function () {
+              _this.play();
+            }, 2000)
+          }
           // setTimeout(function () {
           //   _this.play(playParams);
           // }, 100)
