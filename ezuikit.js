@@ -897,7 +897,7 @@
                         if (data.data && data.data.length > 0) {
                           recSliceArr = recSliceArrFun(data.data);
                           var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
-                          realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', ''));
+                          realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', '')) + '&r='+ Math.random();
                           // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
                           resolve(realUrl);
                         } else {
