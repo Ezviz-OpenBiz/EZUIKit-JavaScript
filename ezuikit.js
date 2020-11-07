@@ -415,9 +415,7 @@
           _this.loadingSet(0, { text: '初始化完成' });
           _this.loadingEnd(0);
           if(playParams.autoplay){
-            setTimeout(function () {
-              _this.play();
-            }, 2000)
+            _this.play();
           }
           // setTimeout(function () {
           //   _this.play(playParams);
@@ -1648,6 +1646,7 @@
               }
             }
             _this.jSPlugin.JS_Play(wsUrl, wsParams, index).then(function () {
+              console.log("播放1次")
               _this.log('播放成功，当前播放第' + (index + 1) + '路');
               _this.loadingSet(index, { text: '播放成功...' });
               //单次播放日志上报
@@ -1812,8 +1811,13 @@
           browser: JSON.stringify(getBrowserInfo()),
           duration: new Date().getTime() - initDecoderDurationST,
           rt: 200,
-        })
-        resolve('200 OK')
+        });
+        var timer = setInterval(function(){
+          if(_this.jSPlugin.aWndList[0].bLoad){
+            resolve('200 OK');
+            clearInterval(timer)
+          }
+        },200)
       });
       /** 
        * 加载错误码
