@@ -568,7 +568,6 @@
         if (res === PLAYM4_OK)
         {
             var oFrameInfo = Module._GetFrameInfo();
-
             switch (oFrameInfo.frameType)
             {
                 case AUDIO_TYPE:
@@ -667,7 +666,7 @@
                 });
             }
             //需要更多数据
-            if (PLAYM4_NEED_MORE_DATA === res || PLAYM4_SYS_NOT_SUPPORT === res) {
+            if (PLAYM4_NEED_MORE_DATA === res || PLAYM4_SYS_NOT_SUPPORT === res || PLAYM4_NOT_KEYFRAME === res){
                 postMessage({
                     'function': "GetFrameData", 'type': "", 'data': null,
                     'dataLen': -1, 'osd': 0, 'frameInfo': null, 'errorCode': res
