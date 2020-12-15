@@ -1517,7 +1517,7 @@ function addCss(filepath, callback) {
                     if(openSoundRT == 0) {
                       _this.log('开启声音成功', data)
                     }else {
-                      _this.log('开启声音失败', 'error', err)
+                      _this.log('开启声音失败', 'error')
                     }
                     console.log("openSoundRT", openSoundRT)
                   }, 100)
@@ -1580,7 +1580,7 @@ function addCss(filepath, callback) {
                   playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
                 }
                 if ((index + 1) === _this.opt.sources.length) {
-                  resolve({code : -1})
+                  resolve({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' })
                 }
               })
 
