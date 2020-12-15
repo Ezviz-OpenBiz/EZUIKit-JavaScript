@@ -1,0 +1,23 @@
+
+
+/* 控制模块 */
+.video-container {
+  position: relative;
+}
+.video-controls-container {
+  display: inline-block;
+  width: 100%;
+  height: 30px;
+  /* outline: 1px solid green; */
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+}
+
+.video-controls-container img {
+  /* pointer-events:none; */
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+}
