@@ -169,7 +169,25 @@
   //   })
   // }
   EZUITalk.prototype.startTalk = function(){
-    window.startTalk();
+    var _this = this;
+    var apiSuccess = function(data) {
+      if (data.code == 200) {
+        var apiResult = data.data;
+        if (apiResult) {
+          // 临时将https转换为websocket
+          _this.opt.stream = apiResult.stream;
+          window.startTalk();
+        }
+      }
+    }
+    var apiError = function() {
+      layer.msg("获取对讲token失败")
+    }
+    request(_this.opt.apiDomain, 'POST', {
+      accessToken: _this.opt.accessToken,
+      deviceSerial: _this.opt.deviceSerial,
+      channelNo: _this.opt.channelNo
+    }, '', apiSuccess, apiError);
   }
   EZUITalk.prototype.stopTalk = function(){
     window.stopTalk();
