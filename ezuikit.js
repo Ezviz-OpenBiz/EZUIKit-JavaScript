@@ -439,44 +439,23 @@ function addCss(filepath, callback) {
       // var getRealUrl = this.getRealUrl(playParams);
       var initDecoder = this.initDecoder(playParams);
       // 初始化播放器
-      _this.loadingSet(0, { text: '初始化播放器...' });
+      _this.loadingSet(0, { text: _this.opt.domain !== 'open' ? 'Initialize the player...' : '初始化播放器...' });
       if (isPromise(initDecoder)) {
         initDecoder.then(function (data) {
-          _this.loadingSet(0, { text: '初始化完成' });
+          _this.loadingSet(0, { text: _this.opt.domain !== 'open' ? 'Initialization is complete' : '初始化完成' });
           _this.loadingEnd(0);
           if(playParams.autoplay){
             setTimeout(function () {
               _this.play();
             }, 2000)
           }
-          // setTimeout(function () {
-          //   _this.play(playParams);
-          // }, 100)
-          // var getRealUrl = _this.getRealUrl(playParams);
-          // getRealUrl.then(function (data) {
-          //   _this.play(playParams);
-          // })
         })
       }
-      // debugger
-      /**是否自动播放 */
-      // if (isPromise(getRealUrl)) {
-      //   getRealUrl.then(function (data) {
-      //     var initDecoder = _this.initDecoder(playParams);
-      //     // 初始化播放器
-      //     _this.loadingSet(0, { text: '初始化播放器...' });
-      //     if (isPromise(initDecoder)) {
-      //       initDecoder.then(function (data) {
-      //         _this.loadingSet(0, { text: '初始化完成' });
-      //         setTimeout(function () {
-      //           _this.play(playParams);
-      //         }, 1500)
-      //       })
-      //     }
-      //   })
-      // }
     } else {
       var domain = "https://open.ys7.com";
+      if (playParams && playParams.env) {
+        domain = playParams.env.domain;
+      }
       var elementID = '';
       if (typeof playParams === 'string') {         //缩写模式 new EZUIPlayer('myplayer')
         elementID = playParams;
@@ -570,33 +549,6 @@ function addCss(filepath, callback) {
         OpId: uuid(),
       });
     });
-    var appInfoSuccess = function (data) {
-      if (data.retcode === 0 && data.data) {
-        appKey = data.data.appKey;
-      }
-      // 上报一次本地信息
-      dclog({
-        systemName: LOCALINFO,
-      });
-      // 上报一次本地信息-新
-      ezuikitDclog({
-        systemName: LOCALINFO_EZUIKIT,
-        os: navigator.platform,
-        browser: JSON.stringify(getBrowserInfo()),
-      })
-    }
-    var appInfoError = function (error) {
-      // 上报一次本地信息
-      dclog({
-        systemName: LOCALINFO
-      });
-      // 上报一次本地信息-新
-      ezuikitDclog({
-        systemName: LOCALINFO_EZUIKIT,
-        os: navigator.platform,
-        browser: JSON.stringify(getBrowserInfo()),
-      })
-    }
     var deviceSerial = '';
     var playUid = '';
     var accessToken = '';
@@ -620,14 +572,43 @@ function addCss(filepath, callback) {
         accessToken = playParams.accessToken;
       }
     }
+    if(domain === "https://open.ys7.com"){
+      var appInfoSuccess = function (data) {
+        if (data.retcode === 0 && data.data) {
+          appKey = data.data.appKey;
+        }
+        // 上报一次本地信息
+        dclog({
+          systemName: LOCALINFO,
+        });
+        // 上报一次本地信息-新
+        ezuikitDclog({
+          systemName: LOCALINFO_EZUIKIT,
+          os: navigator.platform,
+          browser: JSON.stringify(getBrowserInfo()),
+        })
+      }
+      var appInfoError = function (error) {
+        // 上报一次本地信息
+        dclog({
+          systemName: LOCALINFO
+        });
+        // 上报一次本地信息-新
+        ezuikitDclog({
+          systemName: LOCALINFO_EZUIKIT,
+          os: navigator.platform,
+          browser: JSON.stringify(getBrowserInfo()),
+        })
+      }
     // 获取appKey
-    request(domain + '/jssdk/ezopen/getAppInfo?uuid=' + playUid + '&accessToken=' + accessToken + "&deviceSerial=" + deviceSerial + "&channelNo=1",
-      'GET',
-      '',
-      '',
-      appInfoSuccess,
-      appInfoError
-    );
+      request(domain + '/jssdk/ezopen/getAppInfo?uuid=' + playUid + '&accessToken=' + accessToken + "&deviceSerial=" + deviceSerial + "&channelNo=1",
+        'GET',
+        '',
+        '',
+        appInfoSuccess,
+        appInfoError
+      );
+    }
   };
 
   // 事件监听
@@ -661,8 +642,34 @@ function addCss(filepath, callback) {
     var apiDomain = 'https://open.ys7.com';
     /** jsDecoder 获取真实地址 -- 开始 */
     if (playParams && playParams.hasOwnProperty('decoderPath')) {
-      if(playParams.url.indexOf('open.ezvizlife.com') !==-1){ ///海外
-        var host = 'https://' + playParams.url.match(/ezopen:\/\/(\S*)\.com/)[1] + '.com';
+      if(playParams.url.indexOf('open.ezviz.com') !==-1){ ///海外
+        var host = "https://open.ys7.com";
+        var hostName =  playParams.url.match(/ezopen:\/\/(\S*)\.ezviz\.com/)[1];
+        if (playParams.env) {
+          var environmentParams = playParams.env;
+          domain = environmentParams.domain;
+          hostName = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+        }
+        if(hostName.indexOf("@")!== -1){
+          hostName = hostName.split("@")[1];
+        }
+        switch (hostName){
+          case 'isgpopen':
+            host = "https://isgpopen.ezvizlife.com";
+            break;
+          case 'ieuopen':
+            host = "https://ieuopen.ezvizlife.com";
+            break;
+          case 'isaopen':
+            host = "https://isaopen.ezvizlife.com";
+            break;
+          case 'irusopen':
+            host = "https://irusopen.ezvizru.com";
+            break;
+          case 'testusopen':
+            host = "https://testusopen.ezvizlife.com";
+            break;
+        }
         apiDomain = host;
       }
       if (playParams && playParams.env) {
@@ -751,14 +758,14 @@ function addCss(filepath, callback) {
                         resolve(realUrl);
                       } else {
                         _this.log('未找到录像片段', 'error');
-                        _this.loadingSet(0, { text: '获取设备播放地址' })
-                        resolve(JSON.stringify({ code: -1, msg: "未找到录像片段" }))
+                        _this.loadingSet(0, { text:  _this.opt.domain !== 'open' ? 'Get device live view address' : '获取设备播放地址' })
+                        resolve(JSON.stringify({ code: -1, msg: _this.opt.domain !== 'open' ? 'Not found video clips' : "未找到录像片段" }))
                         // reject('未找到录像片段');
                       }
                     } else {
                       _this.log(data.msg, 'error');
-                      _this.loadingSet(0, { text: '获取设备播放地址' });
-                      resolve(JSON.stringify({ code: -1, msg: "未找到录像片段" }))
+                      _this.loadingSet(0, { text:  _this.opt.domain !== 'open' ? 'Get device live view address complete' : '获取设备播放地址' });
+                      resolve(JSON.stringify({ code: -1, msg: _this.opt.domain !== 'open' ? 'Not found video clips' : "未找到录像片段" }))
                       //reject('未找到录像片段');
                     }
                     function recSliceArrFun(data) {
@@ -827,14 +834,14 @@ function addCss(filepath, callback) {
                           // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
                         } else {
                           _this.log('未找到录像片段', 'error');
-                          _this.loadingSet(0, { text: '获取设备播放地址' })
-                          resolve(JSON.stringify({ code: -1, msg: "未找到录像片段" }))
+                          _this.loadingSet(0, { text:  _this.opt.domain !== 'open' ? 'Get device live view address' : '获取设备播放地址' })
+                          resolve(JSON.stringify({ code: -1, msg:_this.opt.domain !== 'open' ? 'Not found video clips' :  "未找到录像片段" }))
                           // reject('未找到录像片段');
                         }
                       } else {
                         _this.log(data.msg, 'error');
-                        _this.loadingSet(0, { text: '获取设备播放地址' });
-                        resolve(JSON.stringify({ code: -1, msg: "未找到录像片段" }))
+                        _this.loadingSet(0, { text:  _this.opt.domain !== 'open' ? 'Get device live view address' : '获取设备播放地址' });
+                        resolve(JSON.stringify({ code: -1, msg: _this.opt.domain !== 'open' ? 'Not found video clips' : "未找到录像片段" }))
                         //reject('未找到录像片段');
                       }
                       function recSliceArrFun(data) {
@@ -923,11 +930,11 @@ function addCss(filepath, callback) {
             //throw new Error('获取播放设备信息失败');
           }
           var isHttp = 'false';
-          if (playParams && playParams.env && playParams.env.domain) {
-            isHttp = playParams.env.domain.indexOf('https') !== -1 ? 'false' : 'true';
-          } else {
-            isHttp = window.location.href.indexOf('https') !== -1 ? 'false' : 'true';
-          }
+          // if (playParams && playParams.env && playParams.env.domain) {
+          //   isHttp = playParams.env.domain.indexOf('https') !== -1 ? 'false' : 'true';
+          // } else {
+          //   isHttp = window.location.href.indexOf('https') !== -1 ? 'false' : 'true';
+          // }
           var apiParams = {
             ezopen: ezopenURL,
             userAgent: window.navigator.userAgent,
@@ -939,14 +946,20 @@ function addCss(filepath, callback) {
           request(apiUrl, 'POST', apiParams, '', apiSuccess, apiError);
         }
       }
-      var urlList = playParams.url.split(',')
+      var urlList = playParams.url.split(',');
       var promiseTaskList = [];
       var promiseTaskFun = function (ezopenURL) {
         return new Promise(function (resolve, reject) { return getRealUrlPromise(resolve, reject, ezopenURL) })
       };
       urlList.map(function (item, index) {
-        _this.loadingSet(index, { text: '获取设备播放地址' })
-        promiseTaskList.push(promiseTaskFun(item));
+        _this.loadingSet(index, { text:  _this.opt.domain !== 'open' ? 'Get device live view address' : '获取设备播放地址' });
+        var adaptHost = item.match(/ezopen:\/\/(\S*)\.com/)[1] + '.com';
+        if(adaptHost.indexOf("@")!== -1){
+          adaptHost = adaptHost.split("@")[1];
+        }
+        var adaptItem = item.replace(adaptHost, _this.opt.domain !== 'open' ?'open.ezviz.com' : 'open.ys7.com');
+        
+        promiseTaskList.push(promiseTaskFun(adaptItem));
       });
       var getRealUrlPromiseObj = Promise.all(promiseTaskList)
         .then(function (result) {
@@ -954,7 +967,7 @@ function addCss(filepath, callback) {
           _this.opt.sources = result;
           _this.opt.currentSource = result[0];
           result.forEach(function (item, index) {
-            _this.loadingSet(index, { text: '获取播放地址成功' })
+            _this.loadingSet(index, { text:  _this.opt.domain !== 'open' ? 'Get live view Address Success' : '获取播放地址成功' })
           })
         })
         .catch(function (err) {
@@ -1075,6 +1088,9 @@ function addCss(filepath, callback) {
       var minute = time.slice(11, 13);
       var second = time.slice(13, 15);
       var date = year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+      if (_this.opt.domain !== 'open') {
+        return new Date(date.replace(/-/g, '/')).getTime() + (8 * 60*60*1000);        
+      }
       return new Date(date.replace(/-/g, '/')).getTime();
     }
   };
@@ -1416,8 +1432,6 @@ function addCss(filepath, callback) {
   }
 
   EZUIPlayer.prototype.play = function (data) {
-    // debugger
-    //var index = params.index;
     if (!!window['CKobject']) {
       this.opt.autoplay = true;
       this.initCKPlayer();
@@ -1473,7 +1487,7 @@ function addCss(filepath, callback) {
           _this.opt.sources.forEach(function (item, index) {
             if (getQueryString('dev', item) || item.indexOf('ws') !== -1) {
               _this.log("开始播放, 第" + (index + 1) + '路，' + '地址：' + item);
-              _this.loadingSet(index, { text: '准备播放...', color: '#fff' })
+              _this.loadingSet(index, { text: _this.opt.domain !== 'open' ? 'Ready to play...' : '准备播放...', color: '#fff' })
               // 设置秘钥 - 如果地址中包含秘钥参数，播放前配置到JSPlugin对应实例中
               var validateCode = getQueryString('checkCode', item);
               if (validateCode) {
@@ -1490,7 +1504,7 @@ function addCss(filepath, callback) {
               }
               _this.jSPlugin.JS_Play(wsUrl, wsParams, index).then(function () {
                 _this.log('播放成功，当前播放第' + (index + 1) + '路');
-                _this.loadingSet(index, { text: '播放成功...' });
+                _this.loadingSet(index, { text:  _this.opt.domain !== 'open' ? 'Played successfully...' : '播放成功...' });
                 //单次播放日志上报
                 ezuikitDclog({
                   systemName: PERFORMANCE_EZUIKIT,
@@ -1561,9 +1575,9 @@ function addCss(filepath, callback) {
                   browser: JSON.stringify(getBrowserInfo()),
                   duration: new Date().getTime() - playStartTime,
                   rt: err.oError ? err.oError.errorCode : 500,
-                  msg: errorInfo ? errorInfo.description : '播放过程其他错误'
+                  msg: errorInfo ? errorInfo.description : (_this.opt.domain !== 'open' ? 'Other error' : '其他错误')
                 })
-                var msg = errorInfo ? errorInfo.description : '播放过程其他错误';
+                var msg = errorInfo ? errorInfo.description : (_this.opt.domain !== 'open' ? 'Other error' : '其他错误');
                 _this.loadingSet(index, { text: msg, color: 'red' });
                 dclog({
                   systemName: PLAY_MAIN,
@@ -1577,10 +1591,10 @@ function addCss(filepath, callback) {
                 });
                 if (playParams && playParams.handleError) {
                   var errorInfo = JSON.parse(_this.errorCode).find(function (item) { return item.detailCode.substr(-4) == err.oError.errorCode })
-                  playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' });
+                  playParams.handleError({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : (_this.opt.domain !== 'open' ? 'Other error' : '其他错误') });
                 }
                 if ((index + 1) === _this.opt.sources.length) {
-                  resolve({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : '其他错误' })
+                  resolve({ retcode: err.oError.errorCode, msg: errorInfo ? errorInfo.description : (_this.opt.domain !== 'open' ? 'Other error' : '其他错误') })
                 }
               })
 
@@ -1601,6 +1615,15 @@ function addCss(filepath, callback) {
     this.opt.id = playParams.id;
     this.log("初始化解码器---开始");
     var _this = this;
+    _this.opt.domain = playParams.url.match(/ezopen:\/\/(\S*)\.(ys7|ezviz)\.com/)[1];
+    if (playParams.env) {
+      var environmentParams = playParams.env;
+      domain = environmentParams.domain;
+      _this.opt.domain = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+    }
+    if( _this.opt.domain.indexOf("@")!== -1) {
+      _this.opt.domain =  _this.opt.domain.split("@")[1];
+    }
     var initDecoderDurationST = new Date().getTime();
     // DOM id
     function initDecoder(resolve, reject) {
@@ -1656,8 +1679,8 @@ function addCss(filepath, callback) {
         }
         _this.log("初始化解码器----完成");
         if(playParams.controls && playParams.controls.length >0) {
-          var videoControlsJsPath = 'https://open.ys7.com/assets/ezuikit_v3.4/deviceControls/videoControls.js';
-          var videoControlsCssPath =  'https://open.ys7.com/assets/ezuikit_v3.4/deviceControls/deviceControls.css';
+          var videoControlsJsPath = playParams.decoderPath + '/deviceControls/videoControls.js';
+          var videoControlsCssPath = playParams.decoderPath + '/deviceControls/deviceControls.css';
           addJs(videoControlsJsPath,function(){
             addCss(videoControlsCssPath,function(){
               var VideoControlsDOM = document.createElement('div')
@@ -1741,6 +1764,14 @@ function addCss(filepath, callback) {
        * 加载错误码
        * 错误码维护平台 - omm管理系统
        */
+      var errorCodeLan = 'zh';
+      var errorCodePath = playParams.decoderPath + "/js/errorCode.json";
+      var errorCodeKey = 'errorCode';
+      if(_this.opt.domain !== 'open'){
+        errorCodeLan = 'en';
+        errorCodePath = playParams.decoderPath + "/js/errorCode-EN.json";
+        errorCodeKey = "errorCode-EN"
+      }
       function success(data) {
         if (data.code == 200) {
           if (!window.localStorage) {
@@ -1748,14 +1779,14 @@ function addCss(filepath, callback) {
           } else {
             var storage = window.localStorage;
             //写入a字段
-            storage["errorCode"] = JSON.stringify(data.data);
-            _this.errorCode = storage['errorCode'];
+            storage[errorCodeKey] = JSON.stringify(data.data);
+            _this.errorCode = storage[errorCodeKey];
           }
         }
       }
       if (!window.localStorage) {
         request(
-          playParams.decoderPath + "/js/errorCode.json",
+          errorCodePath,
           "get",
           {
             language: 1,
@@ -1767,10 +1798,10 @@ function addCss(filepath, callback) {
         );
       } else {
         var storage = window.localStorage;
-        var errorCode = storage.errorCode;
+        var errorCode = storage[errorCodeKey];
         if (!errorCode) {
           request(
-            playParams.decoderPath + "/js/errorCode.json",
+            errorCodePath,
             "get",
             {
               language: 1,
@@ -1781,7 +1812,7 @@ function addCss(filepath, callback) {
             success
           );
         } else {
-          _this.errorCode = storage['errorCode'];
+          _this.errorCode = storage[errorCodeKey];
         }
       }
 
