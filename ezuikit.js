@@ -648,7 +648,9 @@ function addCss(filepath, callback) {
         if (playParams.env) {
           var environmentParams = playParams.env;
           domain = environmentParams.domain;
-          hostName = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+          if(domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)) {
+            hostName = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+          }
         }
         if(hostName.indexOf("@")!== -1){
           hostName = hostName.split("@")[1];
@@ -1619,7 +1621,9 @@ function addCss(filepath, callback) {
     if (playParams.env) {
       var environmentParams = playParams.env;
       domain = environmentParams.domain;
-      _this.opt.domain = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+      if(domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)) {
+        _this.opt.domain = domain.match(/https:\/\/(\S*)\.ezviz(\S*)\.com/)[1];
+      }
     }
     if( _this.opt.domain.indexOf("@")!== -1) {
       _this.opt.domain =  _this.opt.domain.split("@")[1];
