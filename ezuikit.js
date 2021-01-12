@@ -642,9 +642,9 @@ function addCss(filepath, callback) {
     var apiDomain = 'https://open.ys7.com';
     /** jsDecoder 获取真实地址 -- 开始 */
     if (playParams && playParams.hasOwnProperty('decoderPath')) {
-      if(playParams.url.indexOf('open.ezviz.com') !==-1){ ///海外
+      if(playParams.url.split(",")[0].indexOf('open.ezviz.com') !==-1){ ///海外
         var host = "https://open.ys7.com";
-        var hostName =  playParams.url.match(/ezopen:\/\/(\S*)\.ezviz\.com/)[1];
+        var hostName =  playParams.url.split(",")[0].match(/ezopen:\/\/(\S*)\.ezviz\.com/)[1];
         if (playParams.env) {
           var environmentParams = playParams.env;
           domain = environmentParams.domain;
@@ -1617,7 +1617,7 @@ function addCss(filepath, callback) {
     this.opt.id = playParams.id;
     this.log("初始化解码器---开始");
     var _this = this;
-    _this.opt.domain = playParams.url.match(/ezopen:\/\/(\S*)\.(ys7|ezviz)\.com/)[1];
+    _this.opt.domain = playParams.url.split(",")[0].match(/ezopen:\/\/(\S*)\.(ys7|ezviz)\.com/)[1];
     if (playParams.env) {
       var environmentParams = playParams.env;
       domain = environmentParams.domain;
