@@ -721,8 +721,7 @@ function addCss(filepath, callback) {
                   }
                 }
                 if (!wsEnd) {
-                  var defaultDate = new Date();
-                  realUrl = realUrl + '&end=' + defaultDate.Format('yyyyMMdd') + 'T235959Z';
+                  realUrl = realUrl + '&end=' + formatRecTime(getQueryString('begin', realUrl).substr(0, 8), '235959');
                 } else {
                   realUrl = realUrl.replace('&end=' + getQueryString('end', playUrl), '&end=' + formatRecTime(wsEnd, '235959'))
                   if(!getQueryString('end',realUrl)){
@@ -747,17 +746,59 @@ function addCss(filepath, callback) {
                     deviceSerial: deviceSerial,
                     channelNo: channelNo,
                     startTime: recBegin,
-                    endTime: recEnd
+                    endTime: recEnd,
+                    version: '2.0'
                   }
                   function recAPISuccess(data) {
                     if (data.code == 200) {
                       var recSliceArr = [];
-                      if (data.data && data.data.length > 0) {
-                        recSliceArr = recSliceArrFun(data.data);
-                        var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
-                        realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', '')) + '&r='+ Math.random();
-                        // request(nodeUrl, 'GET', '', '', nodeSuccess, nodeError);
-                        resolve(realUrl);
+                      if (data.data && data.data.files && data.data.files.length > 0) {
+                        var dataArr = data.data.files;
+                        var nextFileTime = new Date().getTime();
+                        var isAll = data.data.isAll;
+                        // mock
+                        // var number = 0;
+                        //isAll = false;
+                        if (isAll) {
+                          recSliceArr = recSliceArrFun(dataArr);
+                          var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
+                          realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', '')) + '&r='+ Math.random();
+                          resolve(realUrl);
+                        } else {
+                          recTransaction();
+                          // 云存储回调事务
+                          function recTransaction() {
+                            function recAPIV2Success(data) {
+                              if (data.data && data.data.files && data.data.files.length > 0) {
+                                //if(number < 2 ) {
+                                if(data.data.isAll == false) {
+                                  if(data.data.files){
+                                    dataArr = dataArr.concat(data.data.files);
+                                  }
+                                  nextFileTime = data.data.nextFileTime > 0 ? data.data.nextFileTime : new Date().getTime();
+                                  recTransaction();
+                                } else {
+                                  recSliceArr = recSliceArrFun(dataArr);
+                                  var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
+                                  realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', '')) + '&r='+ Math.random();
+                                  resolve(realUrl);
+                                }
+                              // mock
+                              //number = number + 1;
+                              } else {
+                                recSliceArr = recSliceArrFun(dataArr);
+                                var recSliceArrJSON = JSON.stringify(recSliceArr).replace('\\', '');
+                                realUrl += ('&recSlice=' + recSliceArrJSON.replace('\\', '')) + '&r='+ Math.random();
+                                resolve(realUrl);
+                              }
+                            }
+                            function recAPIV2Error (err) {
+                              console.log(err);
+                            }
+                            recSliceParams.startTime = nextFileTime;
+                            request(recSliceUrl, 'POST', recSliceParams, '', recAPIV2Success, recAPIV2Error);
+                          }
+                        }
                       } else {
                         _this.log('未找到录像片段', 'error');
                         _this.loadingSet(0, { text:  _this.opt.domain !== 'open' ? 'Get device live view address' : '获取设备播放地址' })
@@ -1632,7 +1673,8 @@ function addCss(filepath, callback) {
     // DOM id
     function initDecoder(resolve, reject) {
       var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js';
-
+      document.getElementById(playParams.id).style.width = (playParams.width || 600) + 'px';
+      document.getElementById(playParams.id).style.height= (playParams.height || 400) + 'px';
       /** 初始化解码器 */
       addJs(jsPluginPath, function () {
         _this.log("下载解码器完成，开始初始化");
