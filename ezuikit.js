@@ -1790,6 +1790,7 @@ function addCss(filepath, callback) {
                 setVoiceStatusCallBack:setVoiceStatusCallBack,
                 setHdStatusCallBack:setHdStatusCallBack,
                 setFullScreenStatusCallBack:setFullScreenStatusCallBack,
+                hd: (playParams.url.indexOf('.hd') !== -1 ) ? 1 : 0,
                 controls: playParams.controls,
               });
             })
