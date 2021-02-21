@@ -141,12 +141,12 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
         width: 1200, // 宽度高度为容器规格，将按照窗口数均分
         height: 800,
         splitBasis: 2 //设置窗口切割参数
-      });
-  ```
-## 六、<a name="talk">对讲模块</a>
+      });```
+## 六、对讲模块
+
   - 初始化
-      ```
-    function onMessage(message){ // 定义对讲事件回调
+   ``` 
+   function onMessage(message) { // 定义对讲事件回调
       console.log("事件回调", message);
     }
     function onError(error) { // 定义对讲错误回调
@@ -158,8 +158,8 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
       filePath: '{{**/ezuikit-talk.js}}',
       onMessage: onMessage,
       onError: onError,
-    });
-  ```
+    }); ```
+
   - 开始对讲
     ```
     EZUITalk.startTalk();
