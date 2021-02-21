@@ -20,7 +20,24 @@
 
   // Pass this if window is not defined yet
 })(typeof window !== "undefined" ? window : this, function (window, noGlobal) {
-    // 加载js
+    function PrefixCode(code,msg) {
+      if(parseInt(code,10) > 0){
+      var PRECODE = 102;
+      var retcode = '102' + (code/Math.pow(10,5)).toFixed(5).substr(2);
+      } else if (code == -1) {
+        retcode = -1;
+      }else if (typeof code === 'undefined'){
+        retcode = 0;
+      }
+      return  {
+        code : retcode,
+        data: msg,
+      }
+      // function PrefixInteger(num, length) {
+      //   return (num/Math.pow(10,length)).toFixed(length).substr(2);
+      //  }
+    }  
+  // 加载js
     function addJs(filepath, callback) {
       var oJs = document.createElement("script");
       oJs.setAttribute("src", filepath);
@@ -48,10 +65,7 @@
     http_request.send(data);
   };
   var EZUITalk = function (params) {
-    console.log("params",params);
-    // this.opt = {
-    //   apiDomain: 'https://test12open.ys7.com/api/lapp/live/talk/url'
-    // }
+    this.params = params;
     this.opt = {
       apiDomain: 'https://open.ys7.com/api/lapp/live/talk/url',
       filePath: '',
@@ -93,7 +107,7 @@
           // 加载依赖
           // this.init();
           var adapeterJS =  _this.opt.filePath +  '/adapeter.js';
-          var janusJS =  _this.opt.filePath +  '/janus.js';
+          var janusJS =  _this.opt.filePath +  '/rtcgw.js';
           var ttsJS =  _this.opt.filePath +  '/tts.js';
             console.log("加载jquery.js");
             addJs(adapeterJS,function(){
@@ -103,19 +117,31 @@
                 addJs(ttsJS,function(){
                   console.log("加载tts.js");
                   // 文件加载完毕;
-  
+                  if (typeof params.onMessage === 'function') {
+                    params.onMessage({
+                      code : 10200001,
+                      data: "插件加载成功"
+                    });
+                  }
                 })
               })
             })
+        } else {
+          if (typeof params.onError === 'function') {
+            params.onError(PrefixCode(data.code,data));
+          }
         }
         
+      } else {
+        if (typeof params.onError === 'function') {
+          params.onError(PrefixCode(data.code,data));
+        }
       }
     }
     function apiError(err){
-      if(params.handleError){
-        params.handleError(err);
+      if(params.onError){
+        params.onError(err);
       }
-
     }
     request(
       this.opt.apiDomain,
