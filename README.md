@@ -145,29 +145,28 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
 ## 六、对讲模块
 
   - 初始化
-   ``` 
-   function onMessage(message) { // 定义对讲事件回调
+    ``` 
+    function onMessage(message) { 
       console.log("事件回调", message);
     }
-    function onError(error) { // 定义对讲错误回调
+    function onError(error) {
       console.log("错误事件回调",error);
     }
     var EZUITalk = new EZUITalk({
-      accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6*************c",
+      accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6c",
       url: {{url}},
       filePath: '{{**/ezuikit-talk.js}}',
       onMessage: onMessage,
       onError: onError,
-    }); ```
+    });
+    ```
 
   - 开始对讲
-    ```
-    EZUITalk.startTalk();
-    ```
+
+    `EZUITalk.startTalk();`
   - 结束对讲
-    ```
-    EZUITalk.startTalk();
-    ```
+
+    `EZUITalk.startTalk();`
     ### 消息列表（onMessage返回值）
 
     消息码|消息内容|消息体
