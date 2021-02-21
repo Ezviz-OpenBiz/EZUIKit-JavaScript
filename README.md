@@ -143,7 +143,9 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
         splitBasis: 2 //设置窗口切割参数
       });
   ```
-## 六、<a name="talk">对讲模块</a>
+  
+  ## 六、<a name="talk">对讲模块</a>
+  
   - 初始化
       ```
     function onMessage(message){ // 定义对讲事件回调
