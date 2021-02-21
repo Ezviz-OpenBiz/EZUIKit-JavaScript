@@ -143,9 +143,50 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
         splitBasis: 2 //设置窗口切割参数
       });
   ```
+## 六、<a name="talk">对讲模块</a>
+  - 初始化
+      ```
+    function onMessage(message){ // 定义对讲事件回调
+      console.log("事件回调", message);
+    }
+    function onError(error) { // 定义对讲错误回调
+      console.log("错误事件回调",error);
+    }
+    var EZUITalk = new EZUITalk({
+      accessToken: "at.8o2k6dbpcvtr13reaa96hbnya6*************c",
+      url: {{url}},
+      filePath: '{{**/ezuikit-talk.js}}',
+      onMessage: onMessage,
+      onError: onError,
+    });
+  ```
+  - 开始对讲
+    ```
+    EZUITalk.startTalk();
+    ```
+  - 结束对讲
+    ```
+    EZUITalk.startTalk();
+    ```
+    ### 消息列表（onMessage返回值）
+
+    消息码|消息内容|消息体
+    -|-|-|
+    |10200001	|对讲资源加载成功|```{code: 10200001, data: "插件加载成功"}```
+    |10200200	|开始对讲成功|```{code: "10200200", data: "start talk success!"}```
+    |10200400	|结束对讲|```{code: "10200400", data: "webrtc destroyed"}```
+
+    ### 错误码（onError返回值）
+
+    错误码|说明
+    -|-|
+    10220002| accessToken过期或异常/设备不存在
+    10200035|	房间号不存在或房间已失效
+    10200504|	设备不在线
+    -1 | 调用麦克风失败，{code: -1, data: "getUserMedia not available"}
 
 
-## 六、<a name="ezopen">播放地址获取及EZOPEN协议说明</a>
+## 七、<a name="ezopen">播放地址获取及EZOPEN协议说明</a>
 
   你可以通过开放平台官网获取各种格式视频直播地址，包含HLS格式，RTMP格式，WS格式，FLV格式等，EZUIKit支持所有格式直播视频播放。你可以将以上格式直播地址配置在UIKIT中直接播放，但需要注意，并非所有浏览器支持任意格式直播地址，为方便开发者使用，开放平台通过EZOPEN协议可以通过你终端类型帮助你轻松适配最优播放地址格式：
   EZOPEN协议格式为 ：
