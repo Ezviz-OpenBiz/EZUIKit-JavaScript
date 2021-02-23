@@ -58,6 +58,25 @@ var opaqueId = "tts-"+Janus.randomString(12);
 
 var spinner = null;
 
+function PrefixCode(code,msg) {
+    
+	if(parseInt(code,10) > 0){
+	var PRECODE = 102;
+	var retcode = '102' + (code/Math.pow(10,5)).toFixed(5).substr(2);
+	} else if (code == -1) {
+		retcode = -1;
+	}else if (typeof code === 'undefined'){
+		retcode = 0;
+	}
+	return  {
+		code : retcode,
+		data: msg,
+	}
+	// function PrefixInteger(num, length) {
+	//   return (num/Math.pow(10,length)).toFixed(length).substr(2);
+	//  }
+}
+
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
@@ -129,6 +148,9 @@ $(document).ready(function() {
 											},
 											error: function(error) {
 												Janus.error("WebRTC error:", error);
+												if (typeof window.EZUITalk.params.onError === 'function') {
+													window.EZUITalk.params.onError(PrefixCode(-1,error))
+												}
 											//	bootbox.alert("WebRTC error... " + JSON.stringify(error));
 											}
 										});
@@ -141,6 +163,9 @@ $(document).ready(function() {
 								error: function(error) {
 									console.error("  -- Error attaching plugin...", error);
 									bootbox.alert("Error attaching plugin... " + error);
+									if (typeof window.EZUITalk.params.onError === 'function') {
+										window.EZUITalk.params.onError(PrefixCode(-1,error))
+									}
 								},
 								consentDialog: function(on) {
 									Janus.debug("Consent dialog should be " + (on ? "on" : "off") + " now");
@@ -202,6 +227,12 @@ $(document).ready(function() {
 											//~ var bitrate = result["bitrate"];
 											//~ toastr.warning("The bitrate has been cut to " + (bitrate/1000) + "kbps", "Packet loss?", {timeOut: 2000});
 											toastr.warning("Janus apparently missed many packets we sent, maybe we should reduce the bitrate", "Packet loss?", {timeOut: 2000});
+										}
+									}
+									var events = msg["event"];
+									if (events !== null && events !== undefined) {
+										if (typeof window.EZUITalk.params.onMessage === 'function') {
+											window.EZUITalk.params.onMessage.onMessage(PrefixCode(msg["code"],msg));
 										}
 									}
 								},
@@ -283,9 +314,9 @@ $(document).ready(function() {
 					},
 					error: function(error) {
 						Janus.error(error);
-						bootbox.alert(error, function() {
-							// window.location.reload();
-						});
+						if (typeof window.EZUITalk.params.onError === 'function') {
+							window.EZUITalk.params.onError(PrefixCode(-1,error))
+						}
 					},
 					destroyed: function() {
 						// window.location.reload();
@@ -295,12 +326,8 @@ $(document).ready(function() {
 		window.stopTalk = function (){
 			janus.destroy();
 		}
-		EZUITalkStopTalk = function (){
-			janus.destroy();
-		}
 		// debugger;
-		window.startTalk = startTalk;
-		function startTalk() {
+		window.startTalk = function() {
 			// Make sure the browser supports WebRTC
 			if(!Janus.isWebrtcSupported()) {
 				bootbox.alert("No WebRTC support... ");
@@ -365,10 +392,15 @@ $(document).ready(function() {
 												Janus.debug("Got SDP!");
 												Janus.debug(jsep);
 												tts.send({"message": body, "jsep": jsep});
+												if (typeof window.EZUITalk.params.onMessage === 'function') {
+													window.EZUITalk.params.onMessage(PrefixCode(200, 'start talk success!'))
+												}
 											},
 											error: function(error) {
 												Janus.error("WebRTC error:", error);
-											//	bootbox.alert("WebRTC error... " + JSON.stringify(error));
+												if (typeof window.EZUITalk.params.onError === 'function') {
+													window.EZUITalk.params.onError(PrefixCode(-1,error))
+												}
 											}
 										});
 									// $('#start').removeAttr('disabled').html("Stop")
@@ -380,6 +412,9 @@ $(document).ready(function() {
 								error: function(error) {
 									console.error("  -- Error attaching plugin...", error);
 									bootbox.alert("Error attaching plugin... " + error);
+									if (typeof window.EZUITalk.params.onError === 'function') {
+										window.EZUITalk.params.onError(PrefixCode(-1,error))
+									}
 								},
 								consentDialog: function(on) {
 									Janus.debug("Consent dialog should be " + (on ? "on" : "off") + " now");
@@ -523,9 +558,15 @@ $(document).ready(function() {
 					error: function(error) {
 						Janus.error(error);
 						console.log("error",error)
+						if (typeof window.EZUITalk.params.onError === 'function') {
+							window.EZUITalk.params.onError(PrefixCode(-1,error))
+						}
 					},
 					destroyed: function() {
 						// window.location.reload();
+						if (typeof window.EZUITalk.params.onMessage === 'function') {
+							window.EZUITalk.params.onMessage(PrefixCode(400, 'webrtc destroyed'))
+						}
 					}
 				});
 			}
