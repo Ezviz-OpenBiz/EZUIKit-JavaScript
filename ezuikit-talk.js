@@ -107,8 +107,8 @@
           // 加载依赖
           // this.init();
           var adapeterJS =  _this.opt.filePath +  '/adapeter.js';
-          var janusJS =  _this.opt.filePath +  '/rtcgw.js';
-          var ttsJS =  _this.opt.filePath +  '/tts.js';
+          var janusJS =  _this.opt.filePath +  '/talk-rtcgw.js';
+          var ttsJS =  _this.opt.filePath +  '/talk-tts.js';
             console.log("加载jquery.js");
             addJs(adapeterJS,function(){
               console.log("加载adapeter.js");
