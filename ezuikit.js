@@ -1571,7 +1571,14 @@ function addCss(filepath, callback) {
                   _this.log("默认开启第1路声音");
                   setTimeout(function () {
                     var openSoundRT = _this.openSound(0);
-                    if(openSoundRT == 0) {
+                    if (isPromise(openSoundRT)) {
+                      openSoundRT.then(function(){
+                        _this.log('开启声音成功');        
+                      })
+                      .catch(function(err){
+                        _this.log('开启声音失败', 'error');
+                      })
+                    }else if(openSoundRT == 0) {
                       _this.log('开启声音成功', data)
                     }else {
                       _this.log('开启声音失败', 'error')
@@ -1673,6 +1680,9 @@ function addCss(filepath, callback) {
     // DOM id
     function initDecoder(resolve, reject) {
       var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js';
+      if(playParams.decoderVersion) {
+        var jsPluginPath = playParams.decoderPath + '/js/versions/' + playParams.decoderVersion + '/jsPlugin-1.2.0.min.js';
+      }
       document.getElementById(playParams.id).style.width = (playParams.width || 600) + 'px';
       document.getElementById(playParams.id).style.height= (playParams.height || 400) + 'px';
       /** 初始化解码器 */
@@ -1687,7 +1697,7 @@ function addCss(filepath, callback) {
           iHeight: playParams.height || 400,
           iMaxSplit: Math.ceil(Math.sqrt(playParams.url.split(",").length)),
           iCurrentSplit: playParams.splitBasis || Math.ceil(Math.sqrt(playParams.url.split(",").length)),
-          szBasePath: playParams.decoderPath + '/js',
+          szBasePath: playParams.decoderVersion ?  ( playParams.decoderPath + '/js/versions/' + playParams.decoderVersion) : (playParams.decoderPath + '/js'),
           oStyle: {
             border: "none",
             background: "#000000"
@@ -1967,7 +1977,17 @@ function addCss(filepath, callback) {
   EZUIPlayer.prototype.openSound = function (iWind) {
     if (!!this.jSPlugin) {
       var openSoundRT = this.jSPlugin.JS_OpenSound(iWind || 0);
-      if(openSoundRT === 0 ){
+      if (isPromise(openSoundRT)) {
+        openSoundRT.then(function(){
+          this.log('开启声音成功');
+          if(this.playControls){
+            this.playControls.setVoiceStatus(1)
+          }          
+        })
+        .catch(function(err){
+          this.log('开启声音失败', 'error');
+        })
+      } else if(openSoundRT === 0 ){
         this.log('开启声音成功');
         if(this.playControls){
           this.playControls.setVoiceStatus(1)
@@ -1992,9 +2012,19 @@ function addCss(filepath, callback) {
   EZUIPlayer.prototype.closeSound = function (iWind) {
     if (!!this.jSPlugin) {
       var closeSoundRT = this.jSPlugin.JS_CloseSound(iWind || 0);
-      if(closeSoundRT === 0 ) {
-        this.log('关闭声音成功')
-        if(this.playControls) {
+      if (isPromise(closeSoundRT)) {
+        closeSoundRT.then(function(){
+          this.log('关闭声音成功');
+          if(this.playControls){
+            this.playControls.setVoiceStatus(0)
+          }          
+        })
+        .catch(function(err){
+          this.log('关闭声音失败', 'error');
+        })
+      } else if(closeSoundRT === 0 ){
+        this.log('关闭声音成功');
+        if(this.playControls){
           this.playControls.setVoiceStatus(0)
         }
       }else {

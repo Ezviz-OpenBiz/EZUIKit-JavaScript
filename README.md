@@ -109,6 +109,7 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   url | ezopen://open.ys7.com/f01018a141094b7fa138b9d0b856507b.live |null| 直播地址<br>支持ezopen协议格式（推荐）<br>支持ws, wss格式预览地址播放<br>多窗口模式请用英文逗号（,）分隔
   accessToken|"at.8o2k6dbpcvtr13reaa96hbnya6fee2wf-9gu6zcjmh2-1j4yrsb-imvlc5poc"|null|用户通过官网或者接口获取的accessToken
   decoderPath|解码器相对路径|null|*必填，预览需要本地加载解码器，请填写ezuikit所在相对路径|
+  decoderVersion|解码器相对路径|null|非必填，默认为最新版本,当前支持的版本 v2.6.4 v3.0 v3.4|
   width|400|null|视频元素宽度
   height|400|null|视频元素高度
   autoplay|true|true|是否自动播放
