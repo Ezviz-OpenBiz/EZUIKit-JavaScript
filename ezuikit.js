@@ -700,9 +700,9 @@ function addCss(filepath, callback) {
               }
               var type= playParams.url.indexOf('live') !== -1 ? 'live' : 'playback';
               if(type === 'live'){
-                realUrl = realUrl + '&auth=1&biz=4&cln=100' + '&ssn=' + stream;
+                realUrl = realUrl + '&ssn=' + stream + '&auth=1&biz=4&cln=100';
               }else {
-                realUrl = realUrl + '&auth=1&cln=100' + '&ssn=' + stream;
+                realUrl = realUrl + '&ssn=' + stream + '&auth=1&cln=100';
               }
               console.log(realUrl)
 
