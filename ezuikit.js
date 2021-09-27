@@ -1,5 +1,5 @@
 /**
- * jssdk 3.4.0
+ * jssdk 3.5.0
  */
 (function (global, factory) {
 
@@ -1458,6 +1458,39 @@ function addCss(filepath, callback) {
     }
     this.flv = flvPlayer;
   };
+  EZUIPlayer.prototype.openFlvFrameTrace = function (thresholdSecond) {
+    if(!thresholdSecond) {
+      thresholdSecond = 3; // 默认为3秒
+    }
+    var flvPlayer = this.flv;
+    var videoElement = this.video;
+     // 延时倍速追加
+     flvPlayer.flvFrameTrace = setInterval(function(){
+      if(flvPlayer.buffered.length) {
+        var end = flvPlayer.buffered.end(0);
+        var diff = end - flvPlayer.currentTime;
+      //   console.log("buffered.length2",flvPlayer.buffered.length);
+        console.log("flvPlayer.buffered.end(0)",flvPlayer.buffered.end(0));
+        if(diff > thresholdSecond && videoElement.playbackRate === 1) { // 时差超过3秒
+          //启用2倍速播放
+          console.log("启用2倍速播放",end,flvPlayer.currentTime,diff,(diff > thresholdSecond))
+          videoElement.playbackRate = 2; // 倍速播放
+          // flvPlayer.currentTime = (flvPlayer.buffered.end(0) - 1);
+        } else if (diff < thresholdSecond && videoElement.playbackRate === 2 ) {
+          //启用1倍速度播放
+          console.log("启用1倍速播放",end,flvPlayer.currentTime,diff,(diff > thresholdSecond))
+          videoElement.playbackRate = 1; // 倍速播放
+        }
+      }
+    },2000); 
+  }
+  EZUIPlayer.prototype.closeFlvFrameTrace = function() {
+    var flvPlayer = this.flv;
+    if(flvPlayer.flvFrameTrace) {
+      this.video.playbackRate = 1;
+      clearInterval(flvPlayer.flvFrameTrace);
+    }
+  }
   EZUIPlayer.prototype.rePlay = function (playParams) {
     this.loadingStart();
     // _this.loadingSet(0,{text:'获取设备播放地址'})
