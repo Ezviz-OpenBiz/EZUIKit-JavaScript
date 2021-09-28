@@ -1972,7 +1972,7 @@ function addCss(filepath, callback) {
     }
   };
   EZUIPlayer.prototype.destroy = function (i) {
-    _this.jSPlugin.JS_DestroyWorker();
+    this.jSPlugin.JS_DestroyWorker();
   }
 
   // 获取OSD时间
