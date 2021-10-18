@@ -1,5 +1,5 @@
 /**
- * jssdk 3.4.0
+ * jssdk 3.4.1
  */
 (function (global, factory) {
 
@@ -609,6 +609,31 @@ function addCss(filepath, callback) {
         appInfoError
       );
     }
+    // 全屏变化回调
+    function fullscreenchange(data) {
+      if(!data) {
+        _this.jSPlugin.JS_Resize(_this.playParams.width, _this.playParams.height);
+      }else {
+        _this.jSPlugin.JS_Resize(document.documentElement.clientWidth , document.documentElement.clientHeight);
+      }
+    }
+    if (typeof document.fullScreen !== "undefined") {
+      document.addEventListener("fullscreenchange", function() {
+        var e = document.fullscreen || false;
+        fullscreenchange(e)
+      })
+    } else if (typeof document.webkitIsFullScreen !== "undefined") {
+      document.addEventListener("webkitfullscreenchange", function() {
+        var e = document.webkitIsFullScreen || false;
+        console.log("EEEEEE-1",e);
+        fullscreenchange(e)
+      })
+    } else if (typeof document.mozFullScreen !== "undefined") {
+      document.addEventListener("mozfullscreenchange", function() {
+        var e = document.mozFullScreen || false;
+        fullscreenchange(e)
+      })
+    }
   };
 
   // 事件监听
@@ -677,6 +702,23 @@ function addCss(filepath, callback) {
       if (playParams && playParams.env) {
         apiDomain = playParams.env.domain;
       }
+      // 检测加密状态
+      if(playParams.url.indexOf("@") === -1){
+        const deviceInfoSuccess = function(data){
+          if (data.code == 200 && data.data) {
+            if(data.data.isEncrypt === 1) {
+              if (playParams && playParams.handleError) {
+                playParams.handleError(Object.assign({retcode: -1,msg:  '设备已经加密，请输入验证码播放'}));
+              }
+            }
+          }
+        }
+        const deviceInfoError = function(data){
+
+        }
+        var deviceSerial = playParams.url.split("/")[3];
+        request(apiDomain + '/api/lapp/device/info', 'POST', {accessToken:playParams.accessToken,deviceSerial:deviceSerial}, '', deviceInfoSuccess, deviceInfoError);
+      }
       // api 获取真实地址开始时间
       var getRealUrlDurationST = new Date().getTime();
       var getRealUrlPromise = function (resolve, reject, ezopenURL) {
@@ -700,7 +742,7 @@ function addCss(filepath, callback) {
               }
               var type= playParams.url.indexOf('live') !== -1 ? 'live' : 'playback';
               if(type === 'live'){
-                realUrl = realUrl + '&ssn=' + stream + '&auth=1&biz=4&cln=100';
+                realUrl = realUrl + '&ssn=' + stream + '&auth=1&biz=4&cln=100' ;
               }else {
                 realUrl = realUrl + '&ssn=' + stream + '&auth=1&cln=100';
               }
@@ -1679,9 +1721,9 @@ function addCss(filepath, callback) {
     var initDecoderDurationST = new Date().getTime();
     // DOM id
     function initDecoder(resolve, reject) {
-      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js';
+      var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js?v=20211012';
       if(playParams.decoderVersion) {
-        var jsPluginPath = playParams.decoderPath + '/js/versions/' + playParams.decoderVersion + '/jsPlugin-1.2.0.min.js';
+        var jsPluginPath = playParams.decoderPath + '/js/versions/' + playParams.decoderVersion + '/jsPlugin-1.2.0.min.js?v=20211012';
       }
       document.getElementById(playParams.id).style.width = (playParams.width || 600) + 'px';
       document.getElementById(playParams.id).style.height= (playParams.height || 400) + 'px';
@@ -1703,6 +1745,45 @@ function addCss(filepath, callback) {
             background: "#000000"
           }
         });
+        _this.jSPlugin.EventCallback = {
+          loadEventHandler: function () {
+          },
+          zoomEventResponse: function (/*iMode, aPoint*/) {  //电子放大回调
+          },
+          windowEventSelect: function (iWndIndex) {  //插件选中窗口回调
+          },
+          pluginErrorHandler: function (iWndIndex, iErrorCode, oError) {  //插件错误回调
+            console.log(iWndIndex, iErrorCode, oError);
+            if(iErrorCode === 1003) {
+              if (playParams && playParams.handleError) {
+                playParams.handleError({ retcode: iErrorCode, msg: oError ? oError : '连接断开，请重试' });
+                if(playParams.url.indexOf("alarmId")!== -1) {
+                  _this.loadingSetIcon(iWndIndex, 'retry');
+                  _this.loadingSet(iWndIndex, { text: '播放结束' });
+                } else {
+                  _this.loadingSetIcon(iWndIndex, 'retry');
+                  _this.loadingSet(iWndIndex, { text: '连接断开，请重试' });
+                }
+              }
+            }
+          },
+          windowEventOver: function (iWndIndex) {
+          },
+          windowEventOut: function (iWndIndex) {
+          },
+          windowEventUp: function (iWndIndex) {
+          },
+          windowFullCcreenChange: function (bFull) {
+          },
+          firstFrameDisplay: function (iWndIndex, iWidth, iHeight) {
+  
+          },
+          performanceLack: function () {
+          },
+          mouseEvent: function (iMouseEventType, iMouseX, iMouseY) {
+          }
+        }
+        _this.jSPlugin.oEventCallback = _this.jSPlugin.EventCallback;
         // _this.jSPlugin.JS_SetWindowControlCallback({
         //   windowEventSelect: function (iWndIndex) {  //插件选中窗口回调
         //     iWind = iWndIndex;
@@ -1730,9 +1811,11 @@ function addCss(filepath, callback) {
         //   console.log("JS_SetOptions");
         // });
         // 注册全屏事件
-        window.onresize = function () {
-          _this.jSPlugin.JS_Resize(playParams.width || 600, playParams.height || 400);
-        }
+        // window.onresize = function () {
+        //   var width = document.documentElement.clientWidth;
+        //   var height = document.documentElement.clientHeight;
+        //   _this.jSPlugin.JS_Resize(width || playParams.width || 600, height || playParams.height || 400);
+        // }
         _this.log("初始化解码器----完成");
         if(playParams.controls && playParams.controls.length >0) {
           var videoControlsJsPath = playParams.decoderPath + '/deviceControls/videoControls.js';
@@ -1976,24 +2059,25 @@ function addCss(filepath, callback) {
   // 开启声音
   EZUIPlayer.prototype.openSound = function (iWind) {
     if (!!this.jSPlugin) {
+      var _this = this;
       var openSoundRT = this.jSPlugin.JS_OpenSound(iWind || 0);
       if (isPromise(openSoundRT)) {
         openSoundRT.then(function(){
-          this.log('开启声音成功');
-          if(this.playControls){
-            this.playControls.setVoiceStatus(1)
+          _this.log('开启声音成功');
+          if(_this.playControls){
+            _this.playControls.setVoiceStatus(1)
           }          
         })
         .catch(function(err){
-          this.log('开启声音失败', 'error');
+          _this.log('开启声音失败', 'error');
         })
       } else if(openSoundRT === 0 ){
-        this.log('开启声音成功');
-        if(this.playControls){
-          this.playControls.setVoiceStatus(1)
+        _this.log('开启声音成功');
+        if(_this.playControls){
+          _this.playControls.setVoiceStatus(1)
         }
       }else {
-        this.log('开启声音失败', 'error');
+        _this.log('开启声音失败', 'error');
       }
       return openSoundRT;
     } else {
@@ -2011,24 +2095,25 @@ function addCss(filepath, callback) {
   // 关闭声音
   EZUIPlayer.prototype.closeSound = function (iWind) {
     if (!!this.jSPlugin) {
+      var _this = this;
       var closeSoundRT = this.jSPlugin.JS_CloseSound(iWind || 0);
       if (isPromise(closeSoundRT)) {
         closeSoundRT.then(function(){
-          this.log('关闭声音成功');
-          if(this.playControls){
-            this.playControls.setVoiceStatus(0)
+          _this.log('关闭声音成功');
+          if(_this.playControls){
+            _this.playControls.setVoiceStatus(0)
           }          
         })
         .catch(function(err){
-          this.log('关闭声音失败', 'error');
+          _this.log('关闭声音失败', 'error');
         })
       } else if(closeSoundRT === 0 ){
-        this.log('关闭声音成功');
-        if(this.playControls){
-          this.playControls.setVoiceStatus(0)
+        _this.log('关闭声音成功');
+        if(_this.playControls){
+          _this.playControls.setVoiceStatus(0)
         }
       }else {
-        this.log('关闭声音失败', 'error');
+        _this.log('关闭声音失败', 'error');
       }
       return closeSoundRT;
     } else {

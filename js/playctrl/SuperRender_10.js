@@ -260,72 +260,78 @@ var fragmentYUVShader = [
 
         var i420Data = data;
         // debugger;
-        // var yDataLength = dWidth * dHeight;
-        // var yData = i420Data.subarray(0, yDataLength);
-        // gl.activeTexture(gl.TEXTURE0);
-        // gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth, dHeight, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
-        //
-        // var cbDataLength = dWidth/2 * dHeight/2;
-        // var cbData = i420Data.subarray(width*height, width*height + cbDataLength);
-        // gl.activeTexture(gl.TEXTURE1);
-        // gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, cbData);
-        //
-        // var crDataLength = cbDataLength;
-        // var crData = i420Data.subarray(width*height + width*height/4, width*height + width*height/4 + crDataLength);
-        // gl.activeTexture(gl.TEXTURE2);
-        // gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
-        // gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, crData);
+		if(width == dWidth && height == dHeight)
+		{
+			var yDataLength = width * height;
+			var yData = i420Data.subarray(0, yDataLength);
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width, height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
+			
+			var cbDataLength = width/2 * height/2;
+			var cbData = i420Data.subarray(width*height, width*height + cbDataLength);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width/2, height/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, cbData);
+			
+			var crDataLength = cbDataLength;
+			var crData = i420Data.subarray(width*height + width*height/4, width*height + width*height/4 + crDataLength);
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width/2, height/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, crData);
+			
+		}
+        else
+		{
+			 // //裁剪宽
+			var yDataLength = dWidth * dHeight;
+			var yData=new Uint8Array(yDataLength) ;
+			for(var i=0;i<dHeight;i++)
+			{
+				//var ySonData=new Uint8Array(dWidth) ;
+				var ySonData = i420Data.subarray(i*width, i*width+dWidth);
+				for (var j = 0; j < dWidth; j++) {
+					yData[i*dWidth + j] = ySonData[j];
+				}
+			}
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth, dHeight, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
+			yData=null;
+			ySonData=null;
 
+			var cbDataLength = dWidth/2 * dHeight/2;
+			var cbData =new Uint8Array(cbDataLength);
+			//var cbSonData=new Uint8Array(dWidth/2) ;
+			for(var i=0;i<dHeight/2;i++)
+			{
+				 var cbSonData = i420Data.subarray(width*height+i*width/2, width*height+i*width/2+dWidth/2);
+				for (var j = 0; j < dWidth/2; j++) {
+					cbData[i*dWidth/2 + j] = cbSonData[j];
+				}
+			}
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, cbData);
+			cbData=null;
+			cbSonData=null;
 
-        // //裁剪宽
-        var yDataLength = dWidth * dHeight;
-        var yData=new Uint8Array(yDataLength) ;
-        for(var i=0;i<dHeight;i++)
-        {
-            //var ySonData=new Uint8Array(dWidth) ;
-            var ySonData = i420Data.subarray(i*width, i*width+dWidth);
-            for (var j = 0; j < dWidth; j++) {
-                yData[i*dWidth + j] = ySonData[j];
-            }
-        }
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth, dHeight, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);
-        yData=null;
-        ySonData=null;
-
-        var cbDataLength = dWidth/2 * dHeight/2;
-        var cbData =new Uint8Array(cbDataLength);
-        //var cbSonData=new Uint8Array(dWidth/2) ;
-        for(var i=0;i<dHeight/2;i++)
-        {
-             var cbSonData = i420Data.subarray(width*height+i*width/2, width*height+i*width/2+dWidth/2);
-            for (var j = 0; j < dWidth/2; j++) {
-                cbData[i*dWidth/2 + j] = cbSonData[j];
-            }
-        }
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, cbData);
-        cbData=null;
-        cbSonData=null;
-
-        var crDataLength = cbDataLength;
-        var crData = new Uint8Array(crDataLength);
-        for(var i=0;i<dHeight/2;i++)
-        {
-            var crSonData = i420Data.subarray(width*height*5/4+i*width/2, width*height*5/4+i*width/2+dWidth/2);
-            for (var j = 0; j < dWidth/2; j++) {
-                crData[i*dWidth/2 + j] = crSonData[j];
-            }
-        }
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, crData);
-        crData=null;
-        crSonData=null;
+			var crDataLength = cbDataLength;
+			var crData = new Uint8Array(crDataLength);
+			for(var i=0;i<dHeight/2;i++)
+			{
+				var crSonData = i420Data.subarray(width*height*5/4+i*width/2, width*height*5/4+i*width/2+dWidth/2);
+				for (var j = 0; j < dWidth/2; j++) {
+					crData[i*dWidth/2 + j] = crSonData[j];
+				}
+			}
+			gl.activeTexture(gl.TEXTURE2);
+			gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dWidth/2, dHeight/2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, crData);
+			crData=null;
+			crSonData=null;
+		}
+       
     };
 
     /**
