@@ -67,8 +67,9 @@
         target="_blank">下载海康播放器播放</a></span>
 
   </div>
-  <div id="playWind" style="width: 600px; height: 400px;">
-  </div>
+  <div id="playWind" style="width: 600px; height: 400px;"></div>
+  <div id="audioleft" style="display: none;"><audio id="myaudio"></audio></div>
+  <div id="audioright" style="display: none;"><audio id="peeraudio"></audio></div>
   <script>
     function handleError(e) {
       console.log('捕获到错误', e)
@@ -193,7 +194,7 @@
       onError: onError,
     });
     window.EZUITalk = EZUITalk;
-    
+
   </script>
 </body>
 
