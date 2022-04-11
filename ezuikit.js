@@ -1757,6 +1757,10 @@ function addCss(filepath, callback) {
       var jsPluginPath = playParams.decoderPath + '/js/jsPlugin-1.2.0.min.js?v=20211012';
       if(playParams.decoderVersion) {
         var jsPluginPath = playParams.decoderPath + '/js/versions/' + playParams.decoderVersion + '/jsPlugin-1.2.0.min.js?v=20211012';
+        if(playParams.decoderVersion === "v4.0") {
+          addJs( playParams.decoderPath + '/js/versions/' + playParams.decoderVersion +'/AudioRenderer.js')
+          addJs( playParams.decoderPath + '/js/versions/' + playParams.decoderVersion +'/SuperRender_10.js')
+        }
       }
       document.getElementById(playParams.id).style.width = (playParams.width || 600) + 'px';
       document.getElementById(playParams.id).style.height= (playParams.height || 400) + 'px';

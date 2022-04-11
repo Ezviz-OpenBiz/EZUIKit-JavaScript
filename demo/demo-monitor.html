@@ -50,7 +50,7 @@
   <h2>预览，回放功能示例：</h2>
   <textarea id="url" placeholder="这里输入ezopen地址">ezopen://open.ys7.com/C69594192/1.live</textarea>
   <textarea id="accessToken"
-    placeholder="这里输入accessToken">at.0t47cm38cjnjbtls4b2maklacln5z2fe-60t6vdglsm-1253dc7-6afknzrja</textarea>
+    placeholder="这里输入accessToken">at.4v4hoo9g74bh6e1s10orja2m2enf0v0q-7efr7org7c-1nvig09-xxplz9q7r</textarea>
   <div class="btn-container">
     <button id="init">初始化播放</button>
     <button id="play">播放</button>
@@ -89,6 +89,7 @@
       height: 400,
       handleError: handleError,
       handleSuccess: handleSuccess,
+      decoderVersion: "v4.0"
     });
     // 这里是打印日志，本例抛出到播放页面
     decoder.on('log', log);
