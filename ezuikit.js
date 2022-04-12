@@ -143,14 +143,17 @@
   }
 
 // 加载js
-function addJs(filepath, callback) {
+ function addJs (filepath, callback, isReadyFun) {
   var headerScript = document.getElementsByTagName('head')[0].getElementsByTagName("script");
   var isReady = false;
-
-  for (var i = 0; i < headerScript.length; i++) {
-    if (headerScript[i].getAttribute("src") == filepath) {
-      isReady = true;
-      callback();
+  if(isReadyFun) {
+    isReady = isReadyFun();
+  } else {
+    for (var i = 0; i < headerScript.length; i++) {
+      if (headerScript[i].getAttribute("src") == filepath) {
+        isReady = true;
+        callback();
+      }
     }
   }
   if (!isReady) {
@@ -158,8 +161,10 @@ function addJs(filepath, callback) {
     oJs.setAttribute("src", filepath);
     oJs.onload = callback;
     document.getElementsByTagName("head")[0].appendChild(oJs);
+  } else {
+    callback();
   }
-}
+};
 function addCss(filepath, callback) {
   var headerLink = document.getElementsByTagName('head')[0].getElementsByTagName("link");
   var isReady = false;
@@ -1936,6 +1941,8 @@ function addCss(filepath, callback) {
           rt: 200,
         })
         resolve('200 OK')
+      },()=>{
+        return !!window.JSPlugin;
       });
       /** 
        * 加载错误码
