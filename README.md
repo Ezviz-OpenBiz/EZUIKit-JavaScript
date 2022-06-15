@@ -124,6 +124,15 @@ UIKit JavaScript是用于WEB端，移动H5端的JavaScript插件，使用UIKit J
   - 预览，回放停止
 
     `player.stop()` 
+    
+  - 截图
+
+    `player.capturePicture(0,"picName")`  
+    
+    不下载图片方式 ：
+    
+    `player.capturePicture(0,"picName",(data)=>{console.log(data);true})`
+    
   
   3.多窗口模式
 
