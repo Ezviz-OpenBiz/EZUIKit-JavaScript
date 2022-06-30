@@ -1,3 +1,4 @@
+# 该仓库已停止维护，请尽快升级到[EZUIKit-JavaScript-npm](https://github.com/Ezviz-OpenBiz/EZUIKit-JavaScript-npm)
 # UIKit JavaScript使用文档
 - [简介](#intro)
 - [获取UIKit JavaScript](#get)
